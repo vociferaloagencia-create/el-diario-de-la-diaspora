@@ -1,0 +1,94 @@
+
+> nextn@0.1.0 dev
+> next dev --turbopack -p 9005
+
+   ▲ Next.js 15.3.8 (Turbopack)
+   - Local:        http://localhost:9005
+   - Network:      http://10.0.0.24:9005
+
+ ✓ Starting...
+ ✓ Compiled middleware in 334ms
+Slow filesystem detected. If F:\Paginas webs\La cifra\.next is a network drive, consider moving it to a local folder. If you have an antivirus enabled, consider excluding your project directory.
+ ✓ Ready in 2.8s
+ ○ Compiling / ...
+ ✓ Compiled / in 11.6s
+ GET / 200 in 13641ms
+ GET / 200 in 869ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 7.5s
+ GET /dashboard 200 in 7736ms
+ GET /dashboard 200 in 161ms
+ ○ Compiling /dashboard/settings/homepage ...
+ ✓ Compiled /dashboard/settings/homepage in 3.2s
+ GET /dashboard/settings/homepage 200 in 3400ms
+ GET /dashboard/settings/homepage 200 in 249ms
+ GET /dashboard/settings/homepage 200 in 289ms
+ GET / 200 in 782ms
+ GET /dashboard 200 in 340ms
+ GET /dashboard/settings/homepage 200 in 266ms
+ ○ Compiling /_not-found/page ...
+ ✓ Compiled /_not-found/page in 6s
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 6212ms
+ GET /dashboard/settings/homepage 200 in 377ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 788ms
+ GET /_next/internal/helpers.ts 404 in 306ms
+ GET /_next/static/runtime.ts 404 in 264ms
+ ✓ Compiled in 327ms
+ ✓ Compiled in 864ms
+ ✓ Compiled in 215ms
+ ✓ Compiled in 9s
+ ✓ Compiled in 116ms
+ ✓ Compiled in 125ms
+ ✓ Compiled in 77ms
+ ✓ Compiled /dashboard/settings/homepage in 134ms
+ GET /dashboard/settings/homepage 200 in 1982ms
+ ✓ Compiled / in 118ms
+ GET / 200 in 3908ms
+ GET / 200 in 508ms
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 200ms
+ GET / 200 in 507ms
+ GET /dashboard 200 in 558ms
+ ○ Compiling /dashboard/settings/articlepage ...
+ ✓ Compiled /dashboard/settings/articlepage in 5s
+ GET /dashboard/settings/articlepage 200 in 5220ms
+ GET /dashboard/settings/articlepage 200 in 198ms
+ GET /dashboard/settings/articlepage 200 in 289ms
+ ○ Compiling /dashboard/settings/navigation ...
+ GET /dashboard/settings/homepage 200 in 313ms
+ GET / 200 in 901ms
+ ✓ Compiled /dashboard/settings/navigation in 64.4s
+ GET /dashboard/settings/navigation 200 in 64699ms
+ ✓ Compiled in 2.1s
+ ○ Compiling / ...
+ ✓ Compiled in 1964ms
+ ✓ Compiled / in 2.2s
+ GET /dashboard/settings/homepage 200 in 2800ms
+ GET / 200 in 3337ms
+ ✓ Compiled in 652ms
+ ✓ Compiled in 1429ms
+ ✓ Compiled in 3s
+ GET /dashboard/settings/homepage 200 in 1481ms
+[2026-06-29T22:10:01.416Z]  @firebase/firestore: Firestore (11.9.0): GrpcConnection RPC 'Listen' stream 0x250ddf30 error. Code: 14 Message: 14 UNAVAILABLE: read ECONNRESET
+ POST /dashboard/settings/homepage 200 in 471ms
+ POST /dashboard/settings/homepage 200 in 305ms
+[TypeError: terminated] {
+  [cause]: [Error: read ECONNRESET] {
+    errno: -4077,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+[2026-06-29T22:10:15.792Z]  @firebase/firestore: Firestore (11.9.0): GrpcConnection RPC 'Listen' stream 0x250ddf31 error. Code: 14 Message: 14 UNAVAILABLE: read ECONNRESET
+[TypeError: terminated] {
+  [cause]: [Error: read ECONNRESET] {
+    errno: -4077,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+ ○ Compiling /_error ...
+ GET /.well-known/appspecific/com.chrome.devtools.json 404 in 1403ms
+ GET /_next/internal/helpers.ts 404 in 27026ms
+ GET /_next/static/runtime.ts 404 in 27418ms
+ GET / 200 in 27986ms
+ ✓ Compiled /_error in 58.2s

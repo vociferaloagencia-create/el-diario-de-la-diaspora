@@ -1,0 +1,40 @@
+{
+  "placeholderImages": [
+    {
+      "id": "politics-1",
+      "description": "A grand government building with columns.",
+      "imageUrl": "https://images.unsplash.com/photo-1594581979864-36977b15d0dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnb3Zlcm5tZW50JTIwYnVpbGRpbmd8ZW58MHx8fHwxNzY0MTc4NjIxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "government building"
+    },
+    {
+      "id": "sports-1",
+      "description": "A person running on a track at sunset.",
+      "imageUrl": "https://images.unsplash.com/photo-1606416550697-3d653df8d9a7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxydW5uaW5nJTIwdHJhY2t8ZW58MHx8fHwxNzY0MTgxMzk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "running track"
+    },
+    {
+      "id": "tech-1",
+      "description": "A close-up of a modern circuit board.",
+      "imageUrl": "https://images.unsplash.com/photo-1631375937044-6dd5beac01d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzY0MDY1ODY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "circuit board"
+    },
+    {
+      "id": "politics-2",
+      "description": "A group of people at a political rally.",
+      "imageUrl": "https://images.unsplash.com/photo-1760892165495-0e62beb4435b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwb2xpdGljYWwlMjByYWxseXxlbnwwfHx8fDE3NjQwODM3OTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "political rally"
+    },
+    {
+      "id": "sports-2",
+      "description": "A soccer ball on a green field.",
+      "imageUrl": "https://images.unsplash.com/photo-1660926655800-3d11219f390d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzb2NjZXIlMjBiYWxsfGVufDB8fHx8MTc2NDE4MTM5Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "soccer ball"
+    },
+    {
+      "id": "tech-2",
+      "description": "A person coding on a laptop in a dark room.",
+      "imageUrl": "https://images.unsplash.com/photo-1499673610122-01c7122c5dcb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsYXB0b3AlMjBjb2Rpbmd8ZW58MHx8fHwxNzY0MTI2MjI1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop coding"
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "settings": [
+    {
+      "_id": "global",
+      "siteName": "NewsFlash",
+      "tagline": "Your daily dose of breaking news.",
+      "logoUrl": "https://placehold.co/200x50/293B5F/FFFFFF/png?text=NewsFlash",
+      "primaryColor": "#293B5F",
+      "backgroundLight": "#E2E2E2",
+      "backgroundDark": "#1A1A1A",
+      "defaultLanguage": "en",
+      "timezone": "America/New_York",
+      "socialLinks": [
+        { "id": "social-1", "network": "facebook", "url": "https://facebook.com/newsflash" },
+        { "id": "social-2", "network": "twitter", "url": "https://twitter.com/newsflash" },
+        { "id": "social-3", "network": "instagram", "url": "https://instagram.com/newsflash" }
+      ],
+      "footerText": "© 2024 NewsFlash. All rights reserved.",
+      "footerLinks": [
+        { "label": "About Us", "url": "/about", "order": 1 },
+        { "label": "Contact", "url": "/contact", "order": 2 },
+        { "label": "Privacy Policy", "url": "/privacy", "order": 3 }
+      ]
+    }
+  ],
+  "navigation": [
+    { "_id": "nav-politics", "label": "Politics", "slug": "politica", "type": "category", "targetCategoryId": "politica", "url": null, "order": 1, "isVisible": true },
+    { "_id": "nav-sports", "label": "Sports", "slug": "deportes", "type": "category", "targetCategoryId": "deportes", "url": null, "order": 2, "isVisible": true },
+    { "_id": "nav-tech", "label": "Technology", "slug": "tecnologia", "type": "category", "targetCategoryId": "tecnologia", "url": null, "order": 3, "isVisible": true },
+    { "_id": "nav-international", "label": "International", "slug": "internacional", "type": "category", "targetCategoryId": "internacional", "url": null, "order": 4, "isVisible": true },
+    { "_id": "nav-opinion", "label": "Opinion", "slug": "opinion", "type": "category", "targetCategoryId": "opinion", "url": null, "order": 5, "isVisible": true }
+  ],
+  "categories": [
+    { "_id": "politica", "name": "Politics", "slug": "politica", "description": "National and international political news.", "parentCategoryId": null, "order": 1, "isVisible": true, "defaultHeroImageUrl": null },
+    { "_id": "deportes", "name": "Sports", "slug": "deportes", "description": "All the latest in the world of sports.", "parentCategoryId": null, "order": 2, "isVisible": true, "defaultHeroImageUrl": null },
+    { "_id": "tecnologia", "name": "Technology", "slug": "tecnologia", "description": "The latest trends in technology and innovation.", "parentCategoryId": null, "order": 3, "isVisible": true, "defaultHeroImageUrl": null },
+    { "_id": "internacional", "name": "International", "slug": "internacional", "description": "News from the international sphere.", "parentCategoryId": null, "order": 4, "isVisible": true, "defaultHeroImageUrl": null },
+    { "_id": "opinion", "name": "Opinion", "slug": "opinion", "description": "Opinion pieces and analysis.", "parentCategoryId": null, "order": 5, "isVisible": true, "defaultHeroImageUrl": null },
+    { "_id": "inteligencia-artificial", "name": "Artificial Intelligence", "slug": "inteligencia-artificial", "description": "Advances in AI.", "parentCategoryId": "tecnologia", "order": 1, "isVisible": true, "defaultHeroImageUrl": null }
+  ],
+  "authors": [
+    {
+      "_id": "juan-perez",
+      "name": "Juan Perez",
+      "slug": "juan-perez",
+      "bio": "Technology journalist with over 10 years of experience covering the most important advances in the sector.",
+      "avatarUrl": "https://placehold.co/100x100/E2E2E2/333333/png?text=JP",
+      "role": "Chief Technology Editor",
+      "socialLinks": { "twitter": "https://twitter.com/juanperez", "website": "https://juanperez.dev" }
+    },
+    {
+      "_id": "laura-gomez",
+      "name": "Laura Gomez",
+      "slug": "laura-gomez",
+      "bio": "International correspondent with experience in conflicts and global politics.",
+      "avatarUrl": "https://placehold.co/100x100/E2E2E2/333333/png?text=LG",
+      "role": "Correspondent",
+      "socialLinks": { "twitter": "https://twitter.com/lauragomez", "website": "" }
+    }
+  ],
+  "articles": [
+    {
+      "_id": "global-impact-event",
+      "title": "Headline of the Main News: A Global Impact Event",
+      "slug": "global-impact-event",
+      "summary": "Leaders from around the world meet to discuss a historic treaty that could change the future of international relations.",
+      "content": "<h1>Full article content about the global impact event...</h1><p>This is example text.</p>",
+      "categoryId": "internacional",
+      "subCategoryId": null,
+      "authorId": "laura-gomez",
+      "heroImageUrl": "https://picsum.photos/seed/101/800/600",
+      "thumbnailUrl": "https://picsum.photos/seed/101/400/300",
+      "status": "published",
+      "publishedAt": "2024-07-29T10:00:00Z",
+      "updatedAt": "2024-07-29T11:30:00Z",
+      "createdAt": "2024-07-29T09:30:00Z",
+      "readingTimeMinutes": 5,
+      "tags": ["summit", "global", "politics"],
+      "allowComments": true,
+      "showOnHomeLatest": false,
+      "showOnHomeGrid": false,
+      "showOnMostRead": false,
+      "mostReadOrder": null,
+      "isMainHero": true,
+      "isSecondaryHero": false,
+      "isHighlightedOnCategory": true
+    },
+    {
+      "_id": "local-team-wins-championship",
+      "title": "Local Team Wins the Championship",
+      "slug": "local-team-wins-championship",
+      "summary": "In a nail-biting final, the city's team claims victory in the last minute.",
+      "content": "<h1>The local team has won the championship...</h1><p>Example text.</p>",
+      "categoryId": "deportes",
+      "subCategoryId": null,
+      "authorId": "sofia-fernandez",
+      "heroImageUrl": "https://picsum.photos/seed/102/600/400",
+      "thumbnailUrl": "https://picsum.photos/seed/102/400/300",
+      "status": "published",
+      "publishedAt": "2024-07-29T09:00:00Z",
+      "updatedAt": "2024-07-29T09:00:00Z",
+      "createdAt": "2024-07-29T08:00:00Z",
+      "readingTimeMinutes": 3,
+      "tags": ["soccer", "championship", "local"],
+      "allowComments": true,
+      "showOnHomeLatest": false,
+      "showOnHomeGrid": true,
+      "showOnMostRead": true,
+      "mostReadOrder": 2,
+      "isMainHero": false,
+      "isSecondaryHero": true,
+      "isHighlightedOnCategory": true
+    },
+     {
+      "_id": "new-political-agreement",
+      "title": "New Political Agreement Reached After Long Negotiations",
+      "slug": "new-political-agreement",
+      "summary": "The main political parties reach a consensus on economic reform.",
+      "content": "<p>Content of the article on the political agreement.</p>",
+      "categoryId": "politica",
+      "subCategoryId": null,
+      "authorId": "miguel-rodriguez",
+      "heroImageUrl": "https://picsum.photos/seed/104/600/400",
+      "thumbnailUrl": "https://picsum.photos/seed/104/400/300",
+      "status": "published",
+      "publishedAt": "2024-07-29T14:00:00Z",
+      "updatedAt": "2024-07-29T14:00:00Z",
+      "createdAt": "2024-07-29T12:00:00Z",
+      "readingTimeMinutes": 3,
+      "tags": ["politics", "agreement", "economy"],
+      "allowComments": true,
+      "showOnHomeLatest": true,
+      "showOnHomeGrid": true,
+      "showOnMostRead": true,
+      "mostReadOrder": 4,
+      "isMainHero": false,
+      "isSecondaryHero": false,
+      "isHighlightedOnCategory": false
+    }
+  ],
+  "homepage": [
+    {
+      "_id": "config",
+      "hero": {
+        "mainArticleId": "global-impact-event",
+        "secondaryArticleIds": ["local-team-wins-championship", "new-political-agreement"]
+      },
+      "latestNews": {
+        "mode": "auto",
+        "maxItems": 6,
+        "manualArticleIds": []
+      },
+      "bottomGrid": {
+        "mode": "auto",
+        "maxItems": 9,
+        "manualArticleIds": []
+      },
+      "mostRead": {
+        "mode": "auto",
+        "maxItems": 4,
+        "manualArticleIds": []
+      },
+      "layoutOptions": {
+        "showWeather": true,
+        "showTopAd": true,
+        "showMiddleAd": true,
+        "showRightColumnAd": true
+      }
+    }
+  ]
+}
