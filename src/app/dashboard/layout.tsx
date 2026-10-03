@@ -99,25 +99,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!loading && !authUser) {
-      if (typeof document !== 'undefined') {
-        document.cookie = 'firebaseAuthToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-        document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-      }
-      router.push('/login');
-    }
-  }, [loading, authUser, router]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-muted/40">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="sr-only">Cargando panel...</p>
-      </div>
-    );
-  }
-
   const isExplicitSuperAdmin = authUser?.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
   const cookieRole = typeof document !== 'undefined'
     ? document.cookie.split('; ').find(row => row.startsWith('userRole='))?.split('=')[1]
@@ -136,11 +117,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isStaff = effectiveProfile?.role === "admin" || effectiveProfile?.role === "editor" || effectiveProfile?.role === "superadmin";
 
   useEffect(() => {
+    if (!loading && !authUser) {
+      if (typeof document !== 'undefined') {
+        document.cookie = 'firebaseAuthToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+        document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      }
+      router.push('/login');
+    }
+  }, [loading, authUser, router]);
+
+  useEffect(() => {
     if (!loading && effectiveProfile && !isStaff && pathname !== '/dashboard/profile') {
       router.replace('/dashboard/profile');
     }
   }, [loading, effectiveProfile, isStaff, pathname, router]);
-  
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-muted/40">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="sr-only">Cargando panel...</p>
+      </div>
+    );
+  }
+
   if (!effectiveProfile) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-muted/40">
