@@ -7,7 +7,7 @@ import { useRouter, usePathname } from "next/navigation";
 import type { SiteSettings, Category } from "@/lib/types";
 import { Button } from "../ui/button";
 import { AuthArea } from "./AuthArea";
-import { Menu, Search, X, ChevronRight, ChevronDown, Globe } from "lucide-react";
+import { Menu, Search, X, ChevronRight, ChevronDown, Globe, Bell, Check } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "../ui/sheet";
 import { BreakingNewsTicker } from "./BreakingNewsTicker";
 import { BrowserNotificationPrompt } from "./BrowserNotificationPrompt";
@@ -85,6 +85,49 @@ export function Header({ settings, categories }: HeaderProps) {
   const handleLanguageChange = (lang: Language) => {
     setCurrentLang(lang);
     setPageLanguage(lang);
+  };
+
+  const [notificationState, setNotificationState] = useState<'default' | 'granted' | 'denied' | 'unsupported'>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationState(Notification.permission);
+    } else if (typeof window !== 'undefined') {
+      setNotificationState('unsupported');
+    }
+  }, []);
+
+  const handleToggleNotifications = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      alert('Tu navegador no admite notificaciones push.');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      alert('¡Las notificaciones ya están activadas en este dispositivo!');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      alert('Las notificaciones están bloqueadas en tu navegador. Puedes habilitarlas en el candado de la barra de direcciones.');
+      return;
+    }
+
+    try {
+      const res = await Notification.requestPermission();
+      setNotificationState(res);
+      if (res === 'granted') {
+        localStorage.setItem('browser_push_subscribed', 'true');
+        try {
+          new Notification('El Diario de la Diáspora', {
+            body: '¡Notificaciones activadas! Recibirás noticias de última hora al instante.',
+            icon: '/icon.png',
+          });
+        } catch (e) {}
+      }
+    } catch (err) {
+      console.warn('Error al solicitar notificaciones:', err);
+    }
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -245,10 +288,29 @@ export function Header({ settings, categories }: HeaderProps) {
 
               {/* Pie del MenÃº Lateral */}
               <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-wider py-2">
-                  <Link href="/submit" onClick={() => setIsSheetOpen(false)}>
-                    SUSCRÍBETE AHORA
-                  </Link>
+                <Button 
+                  type="button"
+                  onClick={() => {
+                    handleToggleNotifications();
+                    setIsSheetOpen(false);
+                  }}
+                  className={`w-full ${
+                    notificationState === 'granted'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-primary hover:bg-primary/90'
+                  } text-white font-bold text-xs uppercase tracking-wider py-2.5 gap-2`}
+                >
+                  {notificationState === 'granted' ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Notificaciones Activas</span>
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      <span>Activar Notificaciones</span>
+                    </>
+                  )}
                 </Button>
               </div>
             </SheetContent>
@@ -313,8 +375,28 @@ export function Header({ settings, categories }: HeaderProps) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
             </form>
 
-            <Button asChild variant="default" size="sm" className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-bold rounded-full px-5 shadow-sm hover:shadow transition-all">
-              <Link href="/submit">SUSCRÍBETE</Link>
+            <Button 
+              type="button" 
+              onClick={handleToggleNotifications}
+              variant="default" 
+              size="sm" 
+              className={`hidden sm:flex ${
+                notificationState === 'granted'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-primary hover:bg-primary/90'
+              } text-white font-bold rounded-full px-4 shadow-sm hover:shadow transition-all gap-1.5`}
+            >
+              {notificationState === 'granted' ? (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>NOTIFICACIONES ACTIVAS</span>
+                </>
+              ) : (
+                <>
+                  <Bell className="w-3.5 h-3.5" />
+                  <span>NOTIFICACIONES</span>
+                </>
+              )}
             </Button>
             
             <AuthArea context="header" />
