@@ -132,6 +132,8 @@ export interface CommunityGalleryItem {
 }
 
 export interface CommunitySettings {
+  logoUrl?: string;
+  logoHeight?: number;
   bannerImage?: string;
   title?: string;
   subtitle?: string;

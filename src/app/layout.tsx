@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { CookieConsentBanner } from "@/components/site/CookieConsentBanner";
 import { getSiteSettings } from '@/lib/firestore';
 import { AuthProvider } from '@/hooks/use-auth';
 
@@ -39,9 +40,8 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster />
+          <CookieConsentBanner />
         </AuthProvider>
-
-        
       </body>
     </html>
   );

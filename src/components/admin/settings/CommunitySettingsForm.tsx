@@ -5,7 +5,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -18,6 +18,8 @@ const communitySchema = z.object({
   title: z.string().min(1, "El título es obligatorio"),
   subtitle: z.string().min(1, "El subtítulo es obligatorio"),
   bannerImage: z.string().min(1, "La imagen de portada es obligatoria"),
+  logoUrl: z.string().optional(),
+  logoHeight: z.coerce.number().min(30).max(250).optional(),
   values: z.array(
     z.object({
       title: z.string().min(1, "Título obligatorio"),
@@ -38,8 +40,17 @@ interface CommunitySettingsFormProps {
   initialData?: CommunitySettings;
 }
 
+const defaultGallery = [
+  { title: "Reunión Editorial", imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Nuestra Sala de Redacción", imageUrl: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Celebrando Metas Juntos", imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" },
+  { title: "El equipo completo de Diáspora", imageUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop" },
+  { title: "Fraternidad y Unidad", imageUrl: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070&auto=format&fit=crop" },
+];
+
 export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
   const { toast } = useToast();
@@ -50,17 +61,15 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
       title: initialData?.title || "Nuestra Comunidad",
       subtitle: initialData?.subtitle || "Más que un medio de comunicación, somos una familia comprometida con llevarte la mejor información todos los días.",
       bannerImage: initialData?.bannerImage || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
+      logoUrl: initialData?.logoUrl || "/logo-footer-white.png",
+      logoHeight: initialData?.logoHeight ?? 110,
       values: initialData?.values && initialData.values.length > 0 ? initialData.values : [
         { title: "Unidad", desc: "Trabajamos juntos como una familia para traer la verdad a nuestra gente." },
         { title: "Pasión", desc: "Cada historia se cuenta con el corazón y el respeto que merece la diáspora." },
         { title: "Compromiso", desc: "Nuestra meta diaria es informar con objetividad, rapidez y precisión." },
         { title: "Vocación", desc: "El periodismo no es solo un trabajo para nosotros, es nuestro estilo de vida." },
       ],
-      gallery: initialData?.gallery && initialData.gallery.length > 0 ? initialData.gallery : [
-        { title: "Reunión Editorial", imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop" },
-        { title: "Nuestra Sala de Redacción", imageUrl: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" },
-        { title: "Celebrando Metas Juntos", imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" },
-      ],
+      gallery: initialData?.gallery && initialData.gallery.length > 0 ? initialData.gallery : defaultGallery,
     },
   });
 
@@ -73,6 +82,23 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
     control: form.control,
     name: "gallery",
   });
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingLogo(true);
+    try {
+      const url = await uploadImage(file);
+      form.setValue("logoUrl", url);
+      toast({ title: "Logo de comunidad subido con éxito" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error al subir el logo", variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -129,20 +155,107 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
     }
   }
 
-  const isWorking = isSubmitting || uploadingBanner || uploadingGalleryIndex !== null;
+  const isWorking = isSubmitting || uploadingLogo || uploadingBanner || uploadingGalleryIndex !== null;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Encabezado Principal */}
+        {/* Logo de la Comunidad con Barra Deslizante */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
-              Cabecera y Portada de Nuestra Comunidad
+              Logo de Nuestra Comunidad
             </CardTitle>
             <CardDescription>
-              Configura el título, la descripción y la foto de fondo principal de la página /comunidad.
+              Configura el logo oficial y su tamaño proporcional mediante la barra deslizante.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {form.watch("logoUrl") && (
+              <div className="p-4 bg-slate-900 rounded-xl border border-slate-800">
+                <div className="flex items-center justify-between mb-2">
+                  <FormLabel className="text-white text-xs font-semibold uppercase tracking-wider">Vista Previa del Logo</FormLabel>
+                  <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono font-bold">
+                    {form.watch("logoHeight") || 110}px de altura
+                  </span>
+                </div>
+                <div className="flex items-center justify-center min-h-[110px] p-2 bg-slate-950/60 rounded-lg border border-slate-800/80 overflow-x-auto">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={form.watch("logoUrl")}
+                    alt="Logo comunidad"
+                    style={{ height: `${form.watch("logoHeight") || 110}px` }}
+                    className="w-auto object-contain transition-all duration-100 drop-shadow-xl"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <label className="cursor-pointer">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity">
+                  <Upload className="h-4 w-4" />
+                  Subir Nuevo Logo desde PC
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  disabled={isWorking}
+                  className="hidden"
+                />
+              </label>
+              {uploadingLogo && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  Subiendo logo...
+                </div>
+              )}
+            </div>
+
+            <FormField
+              control={form.control}
+              name="logoHeight"
+              render={({ field }) => (
+                <FormItem className="space-y-3 bg-muted/30 p-4 rounded-xl border">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <FormLabel className="font-semibold text-base">Tamaño del Logo (Barra Deslizante)</FormLabel>
+                      <FormDescription>Arrastra la barra para agrandar o achicar el logo proporcionalmente.</FormDescription>
+                    </div>
+                    <span className="text-sm font-bold bg-primary text-primary-foreground px-3 py-1 rounded-full font-mono">
+                      {field.value || 110} px
+                    </span>
+                  </div>
+                  <FormControl>
+                    <input
+                      type="range"
+                      min="50"
+                      max="220"
+                      step="2"
+                      value={field.value || 110}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                    />
+                  </FormControl>
+                  <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                    <span>50px (Pequeño)</span>
+                    <span>110px (Recomendado)</span>
+                    <span>220px (Extra Grande)</span>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Encabezado y Portada */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Textos y Fondo de Portada</CardTitle>
+            <CardDescription>
+              Configura el título, subtítulo e imagen de fondo para la sección /comunidad.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -175,9 +288,9 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
             />
 
             <div className="space-y-3 pt-2">
-              <FormLabel>Foto de Portada Principal</FormLabel>
+              <FormLabel>Foto de Fondo de Portada</FormLabel>
               {form.watch("bannerImage") && (
-                <div className="relative w-full max-w-md h-40 rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-800">
+                <div className="relative w-full max-w-md h-36 rounded-xl overflow-hidden border bg-slate-100 dark:bg-slate-800">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={form.watch("bannerImage")}
@@ -188,9 +301,9 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
               )}
               <div className="flex items-center gap-3">
                 <label className="cursor-pointer">
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity">
-                    <Upload className="h-4 w-4" />
-                    Subir Foto desde tu PC
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary text-secondary-foreground font-medium text-xs hover:opacity-90 transition-opacity">
+                    <Upload className="h-3.5 w-3.5" />
+                    Cambiar Fondo desde tu PC
                   </span>
                   <input
                     type="file"
@@ -201,8 +314,8 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
                   />
                 </label>
                 {uploadingBanner && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
                     Subiendo imagen...
                   </div>
                 )}
@@ -259,13 +372,13 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
           </CardContent>
         </Card>
 
-        {/* Galería Fotográfica */}
+        {/* Galería Fotográfica Completa (5 Fotos) */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <ImageIcon className="h-5 w-5 text-blue-500" />
-                Galería Corporativa de Fotos
+                Galería Fotográfica ({galleryFields.length} Fotos)
               </CardTitle>
               <CardDescription>Sube fotografías reales directamente desde tu computadora.</CardDescription>
             </div>
@@ -276,7 +389,7 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
               onClick={() => appendGallery({ title: "", imageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" })}
             >
               <PlusCircle className="h-4 w-4 mr-2" />
-              Añadir Foto a la Galería
+              Añadir Foto
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">

@@ -59,17 +59,29 @@ export default async function PrivacidadPage() {
             </ul>
 
             <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4">
-              4. Cookies y Publicidad
+              4. Cookies y Publicidad de Google AdSense
             </h2>
             <p>
-              Utilizamos cookies propias y de terceros (incluyendo servicios como Google AdSense) para personalizar contenido publicitario y ofrecer una mejor experiencia de navegación. Puedes configurar tu navegador para rechazar o eliminar las cookies en cualquier momento.
+              Este sitio web utiliza <strong>Google AdSense</strong> y otras redes de publicidad de terceros para mostrar anuncios cuando visitas nuestro portal. Google, como proveedor externo, utiliza cookies (incluyendo la cookie DoubleClick DART) para publicar anuncios basados en las visitas previas del usuario a este u otros sitios web de Internet.
+            </p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Los usuarios pueden inhabilitar el uso de la cookie DART y la publicidad personalizada accediendo a la <strong>Configuración de Anuncios de Google</strong> (google.com/settings/ads).</li>
+              <li>También puedes inhabilitar el uso de cookies para publicidad basada en intereses a través de la plataforma de autorregulación <strong>aboutads.info</strong> o <strong>youronlinechoices.eu</strong>.</li>
+              <li>Google recopila y trata datos conforme a la <em>Política de Privacidad y Términos del Servicio de Google</em>.</li>
+            </ul>
+
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4">
+              5. Derechos de los Usuarios y Consentimiento
+            </h2>
+            <p>
+              Cumplimos con las regulaciones internacionales de protección de datos (RGPD / CCPA). Los lectores tienen derecho a acceder, rectificar o solicitar la eliminación de sus datos personales, así como a revocar en cualquier momento su consentimiento respecto al uso de cookies analíticas o de marketing mediante la configuración de su navegador web.
             </p>
 
             <h2 className="text-lg font-bold text-slate-900 dark:text-white pt-4">
-              5. Contacto
+              6. Contacto Oficial
             </h2>
             <p>
-              Si tienes preguntas sobre nuestra política de privacidad, puedes contactarnos a través de nuestro correo oficial de privacidad: <span className="font-semibold text-primary">info@eldiariodeladiaspora.com</span>.
+              Para cualquier consulta legal o solicitud relativa a esta Política de Privacidad y Cookies, puedes comunicarte con nuestro oficial de cumplimiento en: <span className="font-semibold text-primary">info@eldiariodeladiaspora.com</span> o a través de nuestra página de contacto.
             </p>
           </div>
         </div>

@@ -43,13 +43,12 @@ export default async function ComunidadPage() {
                 priority
             />
             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
-                <Image 
-                    src="/logo-footer-white.png" 
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                    src={comm?.logoUrl || "/logo-footer-white.png"} 
                     alt="Logo El Diario de la Diáspora" 
-                    width={480} 
-                    height={130} 
-                    priority
-                    className="h-20 sm:h-28 md:h-36 max-h-[140px] w-auto object-contain mb-4 drop-shadow-2xl" 
+                    style={{ height: `${comm?.logoHeight || 110}px` }} 
+                    className="w-auto max-w-full object-contain mb-4 drop-shadow-2xl transition-all duration-150" 
                 />
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white font-headline tracking-tight mb-4 drop-shadow-lg">
                     {title}
@@ -64,8 +63,13 @@ export default async function ComunidadPage() {
         <section className="py-12 md:py-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {teamValues.map((val, idx) => {
-                        const Icon = val.icon;
+                    {(comm?.values && comm.values.length > 0 ? comm.values : [
+                        { title: "Unidad", desc: "Trabajamos juntos como una familia para traer la verdad a nuestra gente." },
+                        { title: "Pasión", desc: "Cada historia se cuenta con el corazón y el respeto que merece la diáspora." },
+                        { title: "Compromiso", desc: "Nuestra meta diaria es informar con objetividad, rapidez y precisión." },
+                        { title: "Vocación", desc: "El periodismo no es solo un trabajo para nosotros, es nuestro estilo de vida." },
+                    ]).map((val, idx) => {
+                        const Icon = teamValues[idx % teamValues.length].icon;
                         return (
                             <div key={idx} className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-100 dark:border-slate-800/60">
                                 <div className="w-14 h-14 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
@@ -74,7 +78,7 @@ export default async function ComunidadPage() {
                                 <h3 className="text-xl font-bold font-headline mb-2">{val.title}</h3>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{val.desc}</p>
                             </div>
-                        )
+                        );
                     })}
                 </div>
             </div>
@@ -87,74 +91,32 @@ export default async function ComunidadPage() {
                 <p className="text-slate-600 dark:text-slate-400">Compartiendo el día a día y la unidad de nuestra empresa.</p>
             </div>
 
-            {/* Grid de Imágenes (Foro / Galería) */}
+            {/* Grid de Imágenes (5 Fotos) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                {/* Imagen 1 */}
-                <div className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800">
-                    <Image 
-                        src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop"
-                        alt="Reunión editorial"
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                        <span className="text-white font-bold font-headline text-lg">Reunión Editorial</span>
+                {(comm?.gallery && comm.gallery.length > 0 ? comm.gallery : [
+                    { title: "Reunión Editorial", imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "Nuestra Sala de Redacción", imageUrl: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "Celebrando Metas Juntos", imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "El equipo completo de Diáspora", imageUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop" },
+                    { title: "Fraternidad y Unidad", imageUrl: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070&auto=format&fit=crop" },
+                ]).map((photo, idx) => (
+                    <div 
+                      key={idx} 
+                      className={`group relative rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800 min-h-[260px] ${
+                        idx === 3 ? 'aspect-video md:aspect-[21/9] lg:aspect-video md:col-span-2' : 'aspect-square md:aspect-[4/3] lg:aspect-square'
+                      }`}
+                    >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                            src={photo.imageUrl}
+                            alt={photo.title}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                            <span className="text-white font-bold font-headline text-lg">{photo.title}</span>
+                        </div>
                     </div>
-                </div>
-
-                {/* Imagen 2 */}
-                <div className="group relative aspect-[4/3] md:aspect-square rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800">
-                    <Image 
-                        src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop"
-                        alt="Trabajo en equipo"
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                        <span className="text-white font-bold font-headline text-lg">Nuestra Sala de Redacción</span>
-                    </div>
-                </div>
-
-                {/* Imagen 3 */}
-                <div className="group relative aspect-square rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-2 lg:col-span-1">
-                    <Image 
-                        src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop"
-                        alt="Celebrando un hito"
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                        <span className="text-white font-bold font-headline text-lg">Celebrando Metas Juntos</span>
-                    </div>
-                </div>
-
-                {/* Imagen 4 (Ancha) */}
-                <div className="group relative aspect-video md:aspect-[21/9] lg:aspect-video rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800 md:col-span-2 lg:col-span-2">
-                    <Image 
-                        src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop"
-                        alt="Unidad de la empresa"
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                        <span className="text-white font-bold font-headline text-xl">El equipo completo de Diáspora</span>
-                    </div>
-                </div>
-
-                {/* Imagen 5 */}
-                <div className="group relative aspect-square md:aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800">
-                    <Image 
-                        src="https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070&auto=format&fit=crop"
-                        alt="Unidad y fraternidad"
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                        <span className="text-white font-bold font-headline text-lg">Fraternidad</span>
-                    </div>
-                </div>
-
+                ))}
             </div>
         </section>
       </main>

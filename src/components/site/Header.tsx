@@ -270,12 +270,13 @@ export function Header({ settings, categories }: HeaderProps) {
           <div className="flex items-center justify-center flex-1 py-1 shrink-0">
             <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01] px-2">
               <Image
-                src="/logo-horizontal.png"
+                src={settings?.branding?.logoUrl || "/logo-horizontal.png"}
                 alt={settings?.branding?.siteName || "El Diario de la Diáspora"}
                 width={520}
                 height={140}
                 priority
-                className="h-12 sm:h-14 md:h-16 lg:h-20 max-h-[75px] w-auto object-contain dark:brightness-125 drop-shadow-xs"
+                style={{ height: `${settings?.branding?.logoHeight || 60}px`, width: 'auto' }}
+                className="w-auto max-w-full object-contain dark:brightness-125 drop-shadow-xs"
               />
             </Link>
           </div>

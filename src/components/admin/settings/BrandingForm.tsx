@@ -171,12 +171,23 @@ export function BrandingForm({ initialData }: BrandingFormProps) {
             <Separator />
             
             <h3 className="text-lg font-medium">Logo de la Cabecera</h3>
-            <div className="space-y-2">
+            <div className="space-y-4">
                 {form.watch('logoUrl') && (
-                    <div className="mt-2">
-                        <FormLabel>Vista Previa del Logo</FormLabel>
-                        <div className="relative w-64 h-32 bg-slate-100 dark:bg-slate-800 rounded-md mt-1 overflow-hidden">
-                            <Image src={form.watch('logoUrl')} alt="Logo actual" fill className="object-contain p-2"/>
+                    <div className="mt-2 p-4 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center justify-between mb-2">
+                            <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Vista Previa de Cabecera</FormLabel>
+                            <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-mono font-bold">
+                              {form.watch('logoHeight') || 40}px de altura
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-center min-h-[80px] p-2 bg-white dark:bg-slate-950 rounded-lg border overflow-x-auto">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={form.watch('logoUrl')} 
+                              alt="Logo cabecera" 
+                              style={{ height: `${form.watch('logoHeight') || 40}px` }} 
+                              className="w-auto object-contain transition-all duration-100 drop-shadow-xs"
+                            />
                         </div>
                     </div>
                 )}
@@ -190,34 +201,43 @@ export function BrandingForm({ initialData }: BrandingFormProps) {
                     </FormControl>
                     <FormMessage />
                 </FormItem>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
                 <FormField
-                control={form.control}
-                name="logoWidth"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Ancho del Logo (px)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
+                  control={form.control}
+                  name="logoHeight"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3 bg-muted/30 p-4 rounded-xl border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <FormLabel className="font-semibold text-base">Tamaño del Logo de Cabecera (Barra Deslizante)</FormLabel>
+                          <FormDescription>Arrastra la barra para cambiar el tamaño proporcionalmente.</FormDescription>
+                        </div>
+                        <span className="text-sm font-bold bg-primary text-primary-foreground px-3 py-1 rounded-full font-mono">
+                          {field.value || 40} px
+                        </span>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="range"
+                          min="24"
+                          max="120"
+                          step="2"
+                          value={field.value || 40}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue('logoWidth', Math.round(val * 4.7));
+                          }}
+                          className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                      </FormControl>
+                      <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                        <span>24px (Compacto)</span>
+                        <span>50px (Estándar)</span>
+                        <span>120px (Grande)</span>
+                      </div>
                     </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="logoHeight"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Alto del Logo (px)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                  )}
                 />
             </div>
             
