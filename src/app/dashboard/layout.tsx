@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { Newspaper, Settings, BarChart3, Users, Globe, LayoutGrid, Palette, Share2, Home, FileText, Megaphone, ArrowDownToLine, Menu, LayoutDashboard } from 'lucide-react';
+import { Newspaper, Settings, BarChart3, Users, Globe, LayoutGrid, Palette, Share2, Home, FileText, Megaphone, ArrowDownToLine, Menu, LayoutDashboard, Flame } from 'lucide-react';
 import { Sidebar, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { DashboardHeader } from '@/components/admin/DashboardHeader';
 import { Loader2 } from "lucide-react";
@@ -29,6 +29,8 @@ function SettingsSubMenu() {
       label: "CONTENIDO",
       links: [
         { href: "/dashboard/settings/homepage", label: "Portada", icon: Home },
+        { href: "/dashboard/settings/ticker", label: "Última Hora", icon: Flame },
+        { href: "/dashboard/settings/comunidad", label: "Nuestra Comunidad", icon: Users },
         { href: "/dashboard/settings/articlepage", label: "Artículo", icon: FileText },
         { href: "/dashboard/settings/navigation", label: "Menú", icon: Menu },
       ]

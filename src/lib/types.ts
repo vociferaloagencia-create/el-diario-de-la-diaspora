@@ -121,6 +121,31 @@ export interface ArticlePageSettings {
     commentsEnabled: boolean;
 }
 
+export interface CommunityValue {
+  title: string;
+  desc: string;
+}
+
+export interface CommunityGalleryItem {
+  title: string;
+  imageUrl: string;
+}
+
+export interface CommunitySettings {
+  bannerImage?: string;
+  title?: string;
+  subtitle?: string;
+  values?: CommunityValue[];
+  gallery?: CommunityGalleryItem[];
+}
+
+export interface TickerSettings {
+  enabled: boolean;
+  hoursLimit: number;
+  customText?: string;
+  customUrl?: string;
+}
+
 export interface SiteSettings {
   _id?: 'site';
   branding: BrandingSettings;
@@ -131,6 +156,8 @@ export interface SiteSettings {
   footer: FooterSettings;
   articlePage: ArticlePageSettings;
   navigation?: { items: NavItem[] };
+  community?: CommunitySettings;
+  ticker?: TickerSettings;
 }
 
 

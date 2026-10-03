@@ -54,7 +54,7 @@ export async function Footer() {
                 {settings.footer?.links && settings.footer.links.length > 0 ? (
                   settings.footer.links.filter(l => l.isVisible).sort((a,b) => a.order - b.order).map(link => (
                     <Link key={link.id} href={link.href} className="text-sm font-semibold text-slate-300 hover:text-white transition-colors">
-                      {link.label}
+                      {link.label?.replace(/Pol[^\s]+tica/gi, 'Política') || link.label}
                     </Link>
                   ))
                 ) : (

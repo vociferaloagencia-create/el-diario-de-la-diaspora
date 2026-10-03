@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -351,7 +351,7 @@ export function Header({ settings, categories }: HeaderProps) {
       </div>
 
       {/* 3. LÃNEA ROJA DE ÚLTIMA HORA (Solicitada expresamente debajo del menÃº azul) */}
-      <BreakingNewsTicker />
+      <BreakingNewsTicker tickerSettings={settings.ticker} />
     </header>
   </>
   );

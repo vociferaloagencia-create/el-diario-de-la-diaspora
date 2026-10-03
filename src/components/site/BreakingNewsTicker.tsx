@@ -10,18 +10,23 @@ interface BreakingNewsTickerProps {
   breakingTitle?: string;
   breakingUrl?: string;
   publishedAt?: string | any;
+  tickerSettings?: import("@/lib/types").TickerSettings;
 }
 
 export function BreakingNewsTicker({
   breakingTitle,
   breakingUrl,
   publishedAt,
+  tickerSettings,
 }: BreakingNewsTickerProps) {
+  // Si está deshabilitado explícitamente en la configuración, no mostrar
+  if (tickerSettings?.enabled === false) return null;
+
   const [latestArticle, setLatestArticle] = useState<Article | null>(null);
-  const [loading, setLoading] = useState(!breakingTitle);
+  const [loading, setLoading] = useState(!breakingTitle && !tickerSettings?.customText);
 
   useEffect(() => {
-    if (breakingTitle) return;
+    if (breakingTitle || tickerSettings?.customText) return;
     let isMounted = true;
     async function loadLatest() {
       try {
@@ -37,17 +42,18 @@ export function BreakingNewsTicker({
     }
     loadLatest();
     return () => { isMounted = false; };
-  }, [breakingTitle]);
+  }, [breakingTitle, tickerSettings?.customText]);
 
-  const title = breakingTitle || latestArticle?.title;
+  const title = tickerSettings?.customText || breakingTitle || latestArticle?.title;
   const slug = latestArticle?.slug;
-  const url = breakingUrl || (slug ? `/articles/${slug}` : null);
+  const url = tickerSettings?.customUrl || breakingUrl || (slug ? `/articles/${slug}` : null);
   const dateValue = publishedAt || latestArticle?.publishedAt;
 
   if (loading || !title || !url) return null;
 
-  // Regla de 24 horas: si pasaron más de 24 horas sin nueva noticia, se oculta
-  if (dateValue) {
+  // Regla de tiempo: límite de horas configurable (por defecto 24h)
+  const maxHours = tickerSettings?.hoursLimit ?? 24;
+  if (!tickerSettings?.customText && dateValue && maxHours > 0) {
     let publishedTime: number | null = null;
     if (typeof dateValue === 'string') {
       publishedTime = new Date(dateValue).getTime();
@@ -59,7 +65,7 @@ export function BreakingNewsTicker({
 
     if (publishedTime && !isNaN(publishedTime)) {
       const hoursAgo = (Date.now() - publishedTime) / (1000 * 60 * 60);
-      if (hoursAgo > 24) {
+      if (hoursAgo > maxHours) {
         return null;
       }
     }

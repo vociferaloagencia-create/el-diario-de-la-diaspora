@@ -22,35 +22,40 @@ export default async function ComunidadPage() {
     getCategories(),
   ]);
 
+  const comm = settings.community;
+  const bannerImage = comm?.bannerImage || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop";
+  const title = comm?.title || "Nuestra Comunidad";
+  const subtitle = comm?.subtitle || "Más que un medio de comunicación, somos una familia comprometida con llevarte la mejor información todos los días.";
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
       <Header settings={settings} categories={categories} />
 
       <main className="flex-1 w-full mx-auto pb-10">
         {/* Banner Principal */}
-        <section className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] bg-slate-900 flex items-center justify-center overflow-hidden">
+        <section className="relative w-full h-[320px] md:h-[420px] lg:h-[520px] bg-slate-900 flex items-center justify-center overflow-hidden">
             {/* Imagen de fondo de la empresa unida */}
             <Image 
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop" 
+                src={bannerImage} 
                 alt="Equipo de trabajo unido"
                 fill
                 className="object-cover opacity-40 mix-blend-overlay"
                 priority
             />
-            <div className="relative z-10 text-center px-4 max-w-3xl mx-auto flex flex-col items-center">
+            <div className="relative z-10 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
                 <Image 
-                    src="/logo-horizontal.png" 
+                    src="/logo-footer-white.png" 
                     alt="Logo El Diario de la Diáspora" 
-                    width={300} 
-                    height={80} 
-                    className="h-16 w-auto object-contain mb-6 drop-shadow-xl brightness-[10] contrast-200 sepia-[0.3] hue-rotate-[180deg]" 
-                    style={{ filter: 'brightness(0) invert(1) drop-shadow(0px 2px 4px rgba(0,0,0,0.5))' }}
+                    width={480} 
+                    height={130} 
+                    priority
+                    className="h-20 sm:h-28 md:h-36 max-h-[140px] w-auto object-contain mb-4 drop-shadow-2xl" 
                 />
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white font-headline tracking-tight mb-4 drop-shadow-lg">
-                    Nuestra Comunidad
+                    {title}
                 </h1>
-                <p className="text-lg md:text-xl text-slate-200 font-medium drop-shadow-md">
-                    Más que un medio de comunicación, somos una familia comprometida con llevarte la mejor información todos los días.
+                <p className="text-lg md:text-xl text-slate-200 font-medium drop-shadow-md max-w-2xl">
+                    {subtitle}
                 </p>
             </div>
         </section>
