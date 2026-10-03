@@ -45,7 +45,8 @@ export async function Footer() {
                         width={logoWidth || 480}
                         height={logoHeight || 130}
                         priority
-                        className="h-20 sm:h-24 md:h-28 max-h-[115px] w-auto object-contain hover:opacity-95 transition-opacity drop-shadow-md"
+                        style={{ height: `${logoHeight || 70}px`, width: 'auto' }}
+                        className="w-auto max-w-full object-contain hover:opacity-95 transition-opacity drop-shadow-md"
                     />
                 </Link>
             </div>

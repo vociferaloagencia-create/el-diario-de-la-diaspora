@@ -224,12 +224,23 @@ export function BrandingForm({ initialData }: BrandingFormProps) {
             <Separator />
 
             <h3 className="text-lg font-medium">Logo del Pie de Página</h3>
-            <div className="space-y-2">
+            <div className="space-y-4">
                 {form.watch('logoFooterUrl') && (
-                    <div className="mt-2">
-                        <FormLabel>Vista Previa del Logo del Pie de Página</FormLabel>
-                        <div className="relative w-64 h-32 bg-slate-100 dark:bg-slate-800 rounded-md mt-1 overflow-hidden">
-                            <Image src={form.watch('logoFooterUrl')} alt="Logo actual del pie de página" fill className="object-contain p-2"/>
+                    <div className="mt-2 p-4 bg-slate-900 rounded-xl border border-slate-800">
+                        <div className="flex items-center justify-between mb-2">
+                            <FormLabel className="text-white text-xs font-semibold uppercase tracking-wider">Vista Previa en Tiempo Real</FormLabel>
+                            <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-mono font-bold">
+                              {form.watch('logoFooterHeight') || 70}px de altura
+                            </span>
+                        </div>
+                        <div className="flex items-center justify-start min-h-[90px] p-2 bg-slate-950/50 rounded-lg border border-slate-800/80 overflow-x-auto">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img 
+                              src={form.watch('logoFooterUrl')} 
+                              alt="Logo pie de página" 
+                              style={{ height: `${form.watch('logoFooterHeight') || 70}px` }} 
+                              className="w-auto object-contain transition-all duration-100 drop-shadow-md"
+                            />
                         </div>
                     </div>
                 )}
@@ -244,34 +255,43 @@ export function BrandingForm({ initialData }: BrandingFormProps) {
                     <FormDescription>Si se deja en blanco, se usará el logo de la cabecera.</FormDescription>
                     <FormMessage />
                 </FormItem>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
                 <FormField
-                control={form.control}
-                name="logoFooterWidth"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Ancho del Logo del Pie de Página (px)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
+                  control={form.control}
+                  name="logoFooterHeight"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3 bg-muted/30 p-4 rounded-xl border">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <FormLabel className="font-semibold text-base">Tamaño del Logo (Barra Deslizante)</FormLabel>
+                          <FormDescription>Arrastra la barra hacia los lados para aumentar o disminuir el tamaño.</FormDescription>
+                        </div>
+                        <span className="text-sm font-bold bg-primary text-primary-foreground px-3 py-1 rounded-full font-mono">
+                          {field.value || 70} px
+                        </span>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="range"
+                          min="40"
+                          max="220"
+                          step="2"
+                          value={field.value || 70}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            field.onChange(val);
+                            form.setValue('logoFooterWidth', Math.round(val * 3.6));
+                          }}
+                          className="w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                      </FormControl>
+                      <div className="flex justify-between text-xs text-muted-foreground font-mono">
+                        <span>40px (Pequeño)</span>
+                        <span>120px (Mediano)</span>
+                        <span>220px (Grande)</span>
+                      </div>
                     </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="logoFooterHeight"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Alto del Logo del Pie de Página (px)</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} value={field.value || ''} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                  )}
                 />
             </div>
 
