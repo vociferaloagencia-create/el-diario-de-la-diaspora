@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (getUserRole() == 'admin' || getUserRole() == 'superadmin');
+    }
+
+    function isEditor() {
+      return isAuthenticated() && (getUserRole() == 'editor' || isAdmin());
+    }
+
+    // Collection: users
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Collection: articles
+    match /articles/{articleId} {
+      allow read: if true; // Articles are public for readers
+      allow create, update, delete: if isEditor();
+    }
+
+    // Collection: categories
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Collection: siteSettings
+    match /siteSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Collection: statistics
+    match /statistics/{statId} {
+      allow read: if isAdmin();
+      allow write: if true; // Allow recording ad clicks / visits
+    }
+  }
+}

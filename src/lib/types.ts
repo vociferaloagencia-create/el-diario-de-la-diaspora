@@ -8,11 +8,10 @@ interface FirestoreDoc {
   publishedAt: Timestamp;
 }
 
-// This type is for data that has been serialized for client components
 interface SerializedDoc {
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
+  createdAt: Timestamp | string;
+  updatedAt: Timestamp | string;
+  publishedAt: Timestamp | string;
 }
 
 type WithSerialization<T> = Omit<T, keyof FirestoreDoc> & SerializedDoc;
@@ -22,7 +21,7 @@ type WithSerialization<T> = Omit<T, keyof FirestoreDoc> & SerializedDoc;
 export interface AppUser {
   uid: string;
   email: string;
-  role: 'admin' | 'editor';
+  role: 'superadmin' | 'admin' | 'editor' | 'user';
   photoUrl?: string;
   name?: string;
   createdAt: Timestamp | string;
@@ -148,11 +147,11 @@ export interface Category {
   _id: string;
   name: string;
   slug: string;
-  description: string;
-  parentCategoryId: string | null;
+  description?: string;
+  parentCategoryId?: string | null;
   order: number;
   isVisible: boolean;
-  defaultHeroImageUrl: string | null;
+  defaultHeroImageUrl?: string | null;
 }
 
 export interface Author {
@@ -178,7 +177,7 @@ export type Article = WithSerialization<{
   categoryId: string;
   subCategoryId: string | null;
   authorId: string;
-  heroImageUrl: string;
+  heroImageUrl: string; imageCaption?: string;
   heroVideoUrl?: string;
   thumbnailUrl: string;
   status: 'draft' | 'published' | 'archived';

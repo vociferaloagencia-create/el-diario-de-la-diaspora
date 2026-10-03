@@ -24,9 +24,11 @@ export function DashboardHeader() {
     return email.substring(0, 2).toUpperCase();
   };
 
+  const isStaff = userProfile?.role === 'admin' || userProfile?.role === 'editor' || userProfile?.role === 'superadmin';
+
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-      <SidebarTrigger className="sm:hidden" />
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-white dark:bg-slate-900 px-4 sm:px-6 shadow-xs">
+      {isStaff && <SidebarTrigger className="h-9 w-9 text-slate-700 dark:text-slate-200" />}
       <div className="flex-1" />
        <div className="flex items-center gap-4">
         {loading ? (

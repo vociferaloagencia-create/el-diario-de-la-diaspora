@@ -47,13 +47,14 @@ import { Editor } from "@/components/ui/editor";
 
 
 const formSchema = z.object({
-  title: z.string().min(10, "El título debe tener al menos 10 caracteres.").max(150, "El título no debe exceder los 150 caracteres."),
-  summary: z.string().min(10, "El resumen debe tener al menos 10 caracteres.").max(300, "El resumen no debe exceder los 300 caracteres."),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres.").max(300, "El título no debe exceder los 300 caracteres."),
+  summary: z.string().min(5, "El resumen debe tener al menos 5 caracteres.").max(1000, "El resumen no debe exceder los 1000 caracteres."),
   categoryId: z.string({ required_error: "Debes seleccionar una categoría." }),
-  content: z.string().min(50, "El contenido debe tener al menos 50 caracteres."),
+  content: z.string().min(10, "El contenido debe tener al menos 10 caracteres."),
   status: z.enum(["draft", "published"]),
-  heroImageUrl: z.string().url().optional().or(z.literal('')),
-  heroVideoUrl: z.string().url().optional().or(z.literal('')),
+  heroImageUrl: z.string().optional().or(z.literal('')),
+  imageCaption: z.string().optional().or(z.literal('')),
+  heroVideoUrl: z.string().optional().or(z.literal('')),
   allowComments: z.boolean(),
   isMainHero: z.boolean(),
 });
@@ -114,6 +115,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
       content: article.content || '',
       status: article.status || 'draft',
       heroImageUrl: article.heroImageUrl || '',
+      imageCaption: article.imageCaption || '',
       heroVideoUrl: article.heroVideoUrl || '',
       allowComments: article.allowComments === undefined ? true : article.allowComments,
       isMainHero: article.isMainHero || false,
@@ -209,6 +211,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         subCategoryId: null,
         authorId: userProfile.uid,
         heroImageUrl: values.heroImageUrl || "",
+        imageCaption: values.imageCaption || "",
         heroVideoUrl: values.heroVideoUrl || "",
         thumbnailUrl: values.heroImageUrl || "",
         status: values.status,
@@ -260,9 +263,20 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
     }
   }
 
+  const onInvalid = (errors: any) => {
+    console.error("Form validation errors:", errors);
+    const firstKey = Object.keys(errors)[0];
+    const message = errors[firstKey]?.message || `El campo ${firstKey} no es válido.`;
+    toast({
+      title: "Revisa el formulario",
+      description: message,
+      variant: "destructive"
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-8">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold font-headline">{isEditing ? 'Editar Artículo' : 'Crear Nuevo Artículo'}</h2>
           <Button type="submit" disabled={isSubmitting || isUploading} size="lg">
@@ -435,6 +449,21 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                   </FormControl>
                   <FormMessage />
                 </FormItem>
+
+                <FormField
+                  control={form.control}
+                  name="imageCaption"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pie de Foto / Descripción</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ej: El presidente en el evento..." {...field} />
+                      </FormControl>
+                      <FormDescription>Texto descriptivo que aparecerá justo debajo de la imagen principal.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 

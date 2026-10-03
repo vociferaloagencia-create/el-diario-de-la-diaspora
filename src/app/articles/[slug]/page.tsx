@@ -11,13 +11,15 @@ import { AdBannerClient } from "@/components/site/AdBannerClient";
 export const dynamic = 'force-dynamic';
 
 interface ArticlePageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
-  const article = await getArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const decodedSlug = decodeURIComponent(resolvedParams.slug);
+  const article = await getArticleBySlug(decodedSlug);
   if (!article) return {};
   const settings = await getSiteSettings();
   const siteName = settings.branding?.siteName || 'El Diario de la Diáspora';
@@ -35,7 +37,9 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 }
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
-  const article = await getArticleBySlug(params.slug);
+  const resolvedParams = await params;
+  const decodedSlug = decodeURIComponent(resolvedParams.slug);
+  const article = await getArticleBySlug(decodedSlug);
   
   if (!article) {
     notFound();
@@ -83,7 +87,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <AdBannerClient
             ad={settings.ads.articleBottom} 
             adName="articleBottomBanner" 
-            pageSlug={`article/${params.slug}`}
+            pageSlug={`article/${resolvedParams.slug}`}
             defaultSize="h-[120px]"
           />
         </div>

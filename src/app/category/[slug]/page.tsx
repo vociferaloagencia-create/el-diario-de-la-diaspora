@@ -11,6 +11,7 @@ import { AdBannerClient } from "@/components/site/AdBannerClient";
 import { Pagination } from "@/components/ui/pagination";
 import Link from "next/link";
 import { Globe } from "lucide-react";
+import { TranslatedCategoryName } from "@/components/site/TranslatedCategoryName";
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ const DIASPORA_COUNTRIES = [
   'República Dominicana',
   'México',
   'Brasil',
-  'Chile',
+  'República de Chile',
   'Cuba',
   'Bahamas',
   'Venezuela',
@@ -29,22 +30,27 @@ const DIASPORA_COUNTRIES = [
   'Canadá',
   'Francia',
   'España',
+  'Argentina',
+  'Guayana Francesa',
+  'Suiza'
 ];
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
     pais?: string;
-  };
+  }>;
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
-  const { slug } = params;
-  const page = Number(searchParams?.page || 1);
-  const selectedCountry = searchParams?.pais;
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+  const slug = decodeURIComponent(resolvedParams.slug);
+  const page = Number(resolvedSearchParams?.page || 1);
+  const selectedCountry = resolvedSearchParams?.pais;
   
   const settings = await getSiteSettings();
   const allCategories = await getCategories();
@@ -61,9 +67,12 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   let allArticles = allCategoryArticles.filter(a => a.status === 'published');
 
-  // Filtrado por país en La Diáspora si se especifica
+    // Filtrado por país en La Diáspora si se especifica
   if (slug === 'la-diaspora' && selectedCountry && selectedCountry !== 'Todas') {
-    const term = selectedCountry.toLowerCase();
+    let term = selectedCountry.toLowerCase();
+    if (term === 'república de chile') {
+        term = 'chile';
+    }
     const filtered = allArticles.filter(a => 
       a.title?.toLowerCase().includes(term) ||
       a.summary?.toLowerCase().includes(term) ||
@@ -106,7 +115,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-6 bg-primary rounded-sm inline-block" />
                     <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-slate-900 dark:text-white uppercase">
-                      {currentCategory.name}
+                      <TranslatedCategoryName name={currentCategory.name} />
                     </h1>
                   </div>
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -124,7 +133,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       </div>
                       <span className="text-[10px] text-slate-400 hidden sm:inline">Selecciona tu país de interés</span>
                     </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-1">
+                    <div className="flex items-center gap-1.5 flex-wrap py-1">
                       {DIASPORA_COUNTRIES.map((country) => {
                         const isSelected = (!selectedCountry && country === 'Todas') || selectedCountry === country;
                         return (
@@ -135,8 +144,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                               isSelected
                                 ? "bg-primary text-white shadow-sm font-black"
                                 : "bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
-                            }`}
-                          >
+                            }`}>
                             {country}
                           </Link>
                         );

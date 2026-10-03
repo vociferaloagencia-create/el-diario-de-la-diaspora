@@ -24,7 +24,7 @@ export function RelatedArticles({ articles }: RelatedArticlesProps) {
                 {articles.map((article, index) => (
                     <Link key={`${article.href}-${index}`} href={article.href} className="group flex items-center gap-4">
                         <div className="relative w-24 h-24 shrink-0">
-                            <Image src={article.imageUrl} alt={article.title} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover rounded-md"/>
+                            <Image src={article.imageUrl || "/images/opinion_editorial.jpg"} alt={article.title} fill sizes="(max-width: 768px) 100vw, 400px" className="object-cover rounded-md"/>
                         </div>
                         <div className="flex flex-col gap-1">
                              <Badge variant="secondary" className="w-fit mb-1">{article.category}</Badge>

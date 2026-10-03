@@ -127,10 +127,10 @@ export function HomeLayoutForm({ initialData }: HomeLayoutFormProps) {
     setPendingId(articleId);
     try {
       if (isHero) {
-        await updateArticle(articleId, { isMainHero: false });
+        await updateArticle(articleId, { isMainHero: false, heroOrder: 99 });
         const remaining = heroArticles.filter(a => a._id !== articleId).sort((a, b) => (a.heroOrder ?? 99) - (b.heroOrder ?? 99));
         await Promise.all(
-          remaining.map((a, i) => updateArticle(a._id!, { heroOrder: i }))
+          remaining.map((a, i) => updateArticle(a._id!, { isMainHero: true, heroOrder: i }))
         );
         setArticles(prev => prev.map(a => {
           if (a._id === articleId) return { ...a, isMainHero: false, heroOrder: undefined };
@@ -158,9 +158,12 @@ export function HomeLayoutForm({ initialData }: HomeLayoutFormProps) {
     if (syncing || heroArticles.length === 0) return;
     setSyncing(true);
     try {
-      await Promise.all(
-        heroArticles.map((a, i) => updateArticle(a._id!, { isMainHero: true, heroOrder: i }))
-      );
+      const heroIdSet = new Set(heroArticles.map(a => a._id));
+      const notHeroes = articles.filter(a => !heroIdSet.has(a._id) && a.isMainHero);
+      await Promise.all([
+        ...heroArticles.map((a, i) => updateArticle(a._id!, { isMainHero: true, heroOrder: i })),
+        ...notHeroes.map(a => updateArticle(a._id!, { isMainHero: false, heroOrder: 99 }))
+      ]);
       await revalidateHomepage();
       toast({ title: "Portada sincronizada ✓", description: `${heroArticles.length} artículo(s) actualizados correctamente.` });
     } catch (err) {
@@ -169,7 +172,7 @@ export function HomeLayoutForm({ initialData }: HomeLayoutFormProps) {
     } finally {
       setSyncing(false);
     }
-  }, [syncing, heroArticles, toast]);
+  }, [syncing, heroArticles, articles, toast]);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -184,7 +187,7 @@ export function HomeLayoutForm({ initialData }: HomeLayoutFormProps) {
     try {
       // Update all articles unconditionally to avoid type mismatch issues
       await Promise.all(
-        reordered.map((article, i) => updateArticle(article._id!, { heroOrder: i }))
+        reordered.map((article, i) => updateArticle(article._id!, { isMainHero: true, heroOrder: i }))
       );
       setArticles(prev => prev.map(a => {
         const idx = reordered.findIndex(r => r._id === a._id);

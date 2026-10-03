@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +10,11 @@ import { AuthArea } from "./AuthArea";
 import { Menu, Search, X, ChevronRight, ChevronDown, Globe } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "../ui/sheet";
 import { BreakingNewsTicker } from "./BreakingNewsTicker";
+import { BrowserNotificationPrompt } from "./BrowserNotificationPrompt";
+
+
+import { LanguageTranslator, setPageLanguage } from "./LanguageTranslator";
+import { TranslatedCategoryName } from "./TranslatedCategoryName";
 
 interface HeaderProps {
   settings: SiteSettings | null;
@@ -24,15 +29,14 @@ const defaultNavCategories: Category[] = [
   { _id: 'economia', name: 'Economía', slug: 'economia', order: 5, isVisible: true },
   { _id: 'deportes', name: 'Deportes', slug: 'deportes', order: 6, isVisible: true },
   { _id: 'cultura', name: 'Cultura', slug: 'cultura', order: 7, isVisible: true },
-  { _id: 'la-comunidad', name: 'La Comunidad', slug: 'la-comunidad', order: 8, isVisible: true },
-  { _id: 'opinion', name: 'Editorial / Opinión', slug: 'opinion', order: 9, isVisible: true },
+  { _id: 'opinion', name: 'Editorial / Opinión', slug: 'opinion', order: 8, isVisible: true },
 ];
 
 const DIASPORA_COUNTRIES = [
   { name: 'República Dominicana', slug: 'republica-dominicana' },
   { name: 'México', slug: 'mexico' },
   { name: 'Brasil', slug: 'brasil' },
-  { name: 'Chile', slug: 'chile' },
+  { name: 'República de Chile', slug: 'República de Chile' },
   { name: 'Cuba', slug: 'cuba' },
   { name: 'Bahamas', slug: 'bahamas' },
   { name: 'Venezuela', slug: 'venezuela' },
@@ -40,6 +44,9 @@ const DIASPORA_COUNTRIES = [
   { name: 'Canadá', slug: 'canada' },
   { name: 'Francia', slug: 'francia' },
   { name: 'España', slug: 'espana' },
+  { name: 'Argentina', slug: 'argentina' },
+  { name: 'Guayana Francesa', slug: 'guayana-francesa' },
+  { name: 'Suiza', slug: 'suiza' },
 ];
 
 type Language = 'ES' | 'FR' | 'EN' | 'AR';
@@ -64,10 +71,21 @@ export function Header({ settings, categories }: HeaderProps) {
         year: 'numeric',
       });
       setDateStr(formatted.toUpperCase());
+
+      // Sync active language from localStorage
+      const savedLang = localStorage.getItem("selected_site_lang") as Language;
+      if (savedLang && ['ES', 'FR', 'EN', 'AR'].includes(savedLang)) {
+        setCurrentLang(savedLang);
+      }
     } catch (e) {
       // fallback
     }
   }, []);
+
+  const handleLanguageChange = (lang: Language) => {
+    setCurrentLang(lang);
+    setPageLanguage(lang);
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,147 +96,78 @@ export function Header({ settings, categories }: HeaderProps) {
     }
   };
 
-  const navCategories = (categories && categories.length > 0 ? categories : defaultNavCategories).map(c => {
-    // Asegurar que Cultura nunca tenga '/ H'
-    if (c.slug === 'cultura' || c.name.toLowerCase().includes('cultura')) {
-      return { ...c, name: 'Cultura' };
-    }
-    return c;
-  });
+  const navCategories = (categories && categories.length > 0 ? categories : defaultNavCategories)
+    .filter(c => {
+      const slug = (c.slug || '').toLowerCase();
+      const name = (c.name || '').toLowerCase();
+      return !slug.includes('comunidad') && !name.includes('comunidad') && !slug.includes('vision') && !name.includes('visiÃ³n');
+    })
+    .map(c => {
+      if (c.slug === 'cultura' || c.name.toLowerCase().includes('cultura')) {
+        return { ...c, name: 'Cultura' };
+      }
+      return c;
+    });
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-      {/* 1. TOP ROW: Fecha a la Izquierda | LOGO EN EL CENTRO | Selector + Buscar + Suscríbete + Perfil a la Derecha */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
+    <>
+      <LanguageTranslator />
+      <BrowserNotificationPrompt />
+      
+      <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+      {/* 1. TOP ROW: Fecha a la Izquierda | LOGO EN EL CENTRO | Selector + Buscar + SuscrÃ­bete + Perfil a la Derecha */}
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5">
         <div className="flex items-center justify-between gap-4">
           
-          {/* Izquierda: Fecha formal y Edición Digital */}
-          <div className="hidden lg:flex items-center gap-2 text-slate-500 dark:text-slate-400 font-headline flex-1">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-wider">
-              {dateStr}
-            </span>
-            <span className="text-slate-300 dark:text-slate-700">|</span>
-            <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
-              Edición Digital Internacional
-            </span>
-          </div>
+          {/* Izquierda: Menu Movil + Fecha formal */}
+          <div className="flex items-center gap-2 lg:gap-4 flex-1">
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative z-50 hover:bg-slate-100 dark:hover:bg-slate-900">
+                  <Menu className="h-6 w-6 text-slate-800 dark:text-slate-200" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full sm:w-[350px] p-0 flex flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800">
+                <SheetHeader className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                  <SheetTitle className="text-left">
+                    <Image src={settings?.branding?.logoUrl || "/logo-horizontal.png"} alt="El Diario de la Diáspora" width={220} height={45} className="h-8 w-auto object-contain dark:brightness-125" />
+                  </SheetTitle>
+                </SheetHeader>
 
-          {/* Centro: EL LOGO EN EL CENTRO (Requerimiento de la clienta) */}
-          <div className="flex items-center justify-center flex-shrink-0 flex-1 lg:flex-none">
-            <Link href="/" className="inline-flex items-center transition-opacity hover:opacity-90">
-              <Image
-                src="/logo-horizontal.png"
-                alt={settings?.branding?.siteName || "El Diario de la Diáspora"}
-                width={360}
-                height={68}
-                priority
-                className="h-9 sm:h-11 md:h-12 w-auto object-contain dark:brightness-125"
-              />
-            </Link>
-          </div>
+                <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+                  {/* Selector de Idioma Movil */}
+                  <div className="flex items-center justify-between p-2.5 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1 border border-slate-200/80 dark:border-slate-800">
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 font-headline uppercase flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-primary" />
+                      Idioma / Language:
+                    </span>
+                    <div className="flex items-center bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 rounded-md p-0.5">
+                      {(['ES', 'FR', 'EN', 'AR'] as const).map((lang) => (
+                        <button
+                          key={lang}
+                          type="button"
+                          onClick={() => {
+                            handleLanguageChange(lang);
+                            setIsSheetOpen(false);
+                          }}
+                          className={`notranslate px-2 py-1 text-[11px] font-extrabold uppercase rounded transition-all ${
+                            currentLang === lang
+                              ? 'bg-primary text-white shadow-xs font-black'
+                              : 'text-slate-600 dark:text-slate-400 hover:text-primary'
+                          }`}
+                        >
+                          {lang}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-          {/* Derecha: Selector 4 Idiomas + Buscar + Botón SUSCRÍBETE + Perfil */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
-            
-            {/* Selector de Idiomas: ES | FR | EN | AR */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-md p-0.5">
-              {(['ES', 'FR', 'EN', 'AR'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setCurrentLang(lang)}
-                  className={`px-1.5 py-0.5 text-[10px] font-extrabold uppercase rounded transition-all ${
-                    currentLang === lang
-                      ? 'bg-primary text-white shadow-sm font-black'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white'
-                  }`}
-                  title={`Cambiar a ${lang}`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-
-            {/* Buscador */}
-            <form onSubmit={handleSearch} className="relative flex items-center">
-              {isSearchOpen ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Buscar..."
-                    autoFocus
-                    className="h-8 w-28 sm:w-40 px-2.5 text-xs rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(false)}
-                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsSearchOpen(true)}
-                  className="flex items-center gap-1.5 p-1.5 text-xs font-medium text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-primary transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-                  aria-label="Buscar"
-                  title="Buscar"
-                >
-                  <Search className="h-4 w-4" />
-                  <span className="hidden sm:inline text-xs font-semibold">Buscar</span>
-                </button>
-              )}
-            </form>
-
-            {/* Botón SUSCRÍBETE */}
-            <Button
-              asChild
-              size="sm"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground text-[11px] sm:text-xs font-bold px-3 sm:px-4 py-1 h-8 uppercase tracking-wider rounded shadow-sm whitespace-nowrap"
-            >
-              <Link href="/submit">SUSCRÍBETE</Link>
-            </Button>
-
-            {/* Ícono de Usuario / Perfil */}
-            <AuthArea context="header" />
-          </div>
-        </div>
-      </div>
-
-      {/* 2. BOTTOM ROW (BARRA AZUL): ☰ MENÚ + Categorías horizontales con línea activa */}
-      <div className="w-full bg-primary text-primary-foreground shadow-sm">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 h-10">
-          {/* Botón ☰ MENÚ */}
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-primary-foreground hover:bg-white/15 px-2.5 h-7 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 rounded-sm flex-shrink-0"
-              >
-                <Menu className="h-4 w-4" />
-                <span className="font-headline font-bold">MENÚ</span>
-              </Button>
-            </SheetTrigger>
-
-            {/* Menú Lateral (Drawer) */}
-            <SheetContent side="left" className="w-[310px] sm:w-[360px] p-0 bg-white dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col">
-              <SheetHeader className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-                <SheetTitle className="text-left">
-                  <Image src="/logo-horizontal.png" alt="El Diario de la Diáspora" width={220} height={45} className="h-8 w-auto object-contain dark:brightness-125" />
-                </SheetTitle>
-              </SheetHeader>
-
-              <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-                <div>
-                  <h3 className="text-xs font-extrabold uppercase tracking-widest text-primary mb-2.5 flex items-center gap-1.5">
+                  <div>
+                    <h3 className="text-xs font-extrabold uppercase tracking-widest text-primary mb-2.5 flex items-center gap-1.5">
                     <span>SECCIONES NOTICIAS</span>
                   </h3>
                   
-                  {/* Lista de Categorías (Sin Última Hora, como indicó la clienta) */}
+                  {/* Lista de Categorías (Sin Última Hora, como indicÃ³ la clienta) */}
                   <div className="flex flex-col space-y-0.5">
                     {navCategories.map((item) => {
                       const isDiaspora = item.slug === 'la-diaspora';
@@ -230,16 +179,16 @@ export function Header({ settings, categories }: HeaderProps) {
                               onClick={() => setIsSheetOpen(false)}
                               className="text-sm font-semibold text-slate-700 dark:text-slate-200 hover:text-primary dark:hover:text-primary flex-1"
                             >
-                              {item.name}
+                              <TranslatedCategoryName name={item.name} />
                             </Link>
 
-                            {/* Acordeón para países dentro de La Diáspora */}
+                            {/* AcordeÃ³n para paÃ­ses dentro de La Diáspora */}
                             {isDiaspora ? (
                               <button
                                 type="button"
                                 onClick={() => setIsDiasporaMenuOpen(!isDiasporaMenuOpen)}
                                 className="p-1 text-slate-400 hover:text-primary transition-colors"
-                                title="Ver países de la Diáspora"
+                                title="Ver paÃ­ses de la Diáspora"
                               >
                                 {isDiasporaMenuOpen ? (
                                   <ChevronDown className="h-4 w-4 text-primary" />
@@ -252,7 +201,7 @@ export function Header({ settings, categories }: HeaderProps) {
                             )}
                           </div>
 
-                          {/* Submenú de Países de la Diáspora (Requerimiento de la clienta) */}
+                          {/* SubmenÃº de Países de la Diáspora (Requerimiento de la clienta) */}
                           {isDiaspora && isDiasporaMenuOpen && (
                             <div className="pl-3 pr-1 pb-2 pt-0.5 grid grid-cols-1 gap-1 bg-slate-50 dark:bg-slate-900/50 rounded-lg mb-1">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 pt-1">
@@ -266,7 +215,7 @@ export function Header({ settings, categories }: HeaderProps) {
                                   className="text-xs font-medium text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-200/60 dark:hover:bg-slate-800 px-2 py-1 rounded transition-colors flex items-center justify-between"
                                 >
                                   <span>{country.name}</span>
-                                  <span className="text-[9px] text-slate-400">→</span>
+                                    <span className="text-[9px] text-slate-400">→</span>
                                 </Link>
                               ))}
                             </div>
@@ -284,23 +233,17 @@ export function Header({ settings, categories }: HeaderProps) {
                     INSTITUCIONAL
                   </h3>
                   <Link
-                    href="/category/la-comunidad"
+                    href="/comunidad"
                     onClick={() => setIsSheetOpen(false)}
                     className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary py-1"
                   >
                     Nuestra Comunidad
                   </Link>
-                  <Link
-                    href="/category/la-diaspora"
-                    onClick={() => setIsSheetOpen(false)}
-                    className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:text-primary py-1"
-                  >
-                    Visión
-                  </Link>
+
                 </div>
               </div>
 
-              {/* Pie del Menú Lateral */}
+              {/* Pie del MenÃº Lateral */}
               <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                 <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-wider py-2">
                   <Link href="/submit" onClick={() => setIsSheetOpen(false)}>
@@ -310,8 +253,81 @@ export function Header({ settings, categories }: HeaderProps) {
               </div>
             </SheetContent>
           </Sheet>
+            <div className="hidden lg:flex items-center gap-2 text-slate-500 dark:text-slate-400 font-headline">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-wider">
+              {dateStr}
+            </span>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              Edición Digital
+            </span>
+          </div>
 
-          {/* Navegación horizontal de Categorías */}
+          </div>
+
+          {/* Centro: LOGO OFICIAL AMPLIO, DESTACADO Y GRUESO */}
+          <div className="flex items-center justify-center flex-1 py-1 shrink-0">
+            <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01] px-2">
+              <Image
+                src="/logo-horizontal.png"
+                alt={settings?.branding?.siteName || "El Diario de la Diáspora"}
+                width={520}
+                height={140}
+                priority
+                className="h-12 sm:h-14 md:h-16 lg:h-20 max-h-[75px] w-auto object-contain dark:brightness-125 drop-shadow-xs"
+              />
+            </Link>
+          </div>
+
+          {/* Derecha: Selector 4 Idiomas + Buscar + Boton SUSCRÍBETE + Perfil */}
+          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
+            
+            {/* SELECTOR DE IDIOMA */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 mr-1 sm:mr-2">
+              {(['ES', 'FR', 'EN', 'AR'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => handleLanguageChange(lang)}
+                  className={`notranslate px-1.5 py-0.5 text-[10px] font-extrabold uppercase rounded transition-all ${
+                    currentLang === lang
+                      ? 'bg-primary text-white shadow-sm font-black'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white'
+                  }`}
+                  title={`Cambiar idioma a ${lang}`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={handleSearch} className="hidden md:flex relative group">
+              <input
+                type="search"
+                placeholder="Buscar noticias..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-48 lg:w-64 pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-900 border-none rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+            </form>
+
+            <Button asChild variant="default" size="sm" className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-bold rounded-full px-5 shadow-sm hover:shadow transition-all">
+              <Link href="/submit">SUSCRÍBETE</Link>
+            </Button>
+            
+            <AuthArea context="header" />
+            
+            
+
+          </div>
+        </div>
+      </div>
+
+      {/* 2. SECOND ROW Navigation */}
+      <div className="bg-primary w-full shadow-sm">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          {/* Navegacion horizontal de Categorias */}
           <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1">
             {navCategories.map((item) => {
               const isActive = pathname === `/category/${item.slug}`;
@@ -323,7 +339,7 @@ export function Header({ settings, categories }: HeaderProps) {
                     isActive ? "text-white font-bold" : "text-primary-foreground/90"
                   }`}
                 >
-                  {item.name}
+                  <TranslatedCategoryName name={item.name} />
                   {isActive && (
                     <span className="absolute bottom-0 left-1 right-1 h-[2.5px] bg-white rounded-full" />
                   )}
@@ -334,8 +350,9 @@ export function Header({ settings, categories }: HeaderProps) {
         </div>
       </div>
 
-      {/* 3. LÍNEA ROJA DE ÚLTIMA HORA (Solicitada expresamente debajo del menú azul) */}
+      {/* 3. LÃNEA ROJA DE ÚLTIMA HORA (Solicitada expresamente debajo del menÃº azul) */}
       <BreakingNewsTicker />
     </header>
+  </>
   );
 }

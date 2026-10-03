@@ -8,7 +8,7 @@ const politicsImage2 = PlaceHolderImages.find(img => img.id === 'politics-2');
 const sportsImage2 = PlaceHolderImages.find(img => img.id === 'sports-2');
 const techImage2 = PlaceHolderImages.find(img => img.id === 'tech-2');
 
-export const mockArticles: Article[] = [
+export const mockArticles: any[] = [
   {
     id: '1',
     title: 'Global Leaders Summit Addresses Climate Change',

@@ -12,8 +12,10 @@ interface AdBannerClientProps {
 }
 
 export const AdBannerClient = ({ ad, defaultSize, isVertical, adName, pageSlug }: AdBannerClientProps) => {
-    if (!ad || !ad.enabled || !ad.imageUrl) return null;
-    const borderClass = isVertical ? 'border border-slate-200/80 dark:border-slate-800' : 'border border-slate-200/60 dark:border-slate-800';
+    // If ad is disabled, undefined, or has no image, render nothing to keep the layout clean
+    if (!ad || !ad.enabled || !ad.imageUrl) {
+      return null;
+    }
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         if (ad.linkUrl) {
@@ -24,9 +26,9 @@ export const AdBannerClient = ({ ad, defaultSize, isVertical, adName, pageSlug }
     };
 
     return (
-        <div className={`relative bg-slate-100 dark:bg-slate-900 rounded-xl flex justify-center items-center text-center my-6 overflow-hidden shadow-sm ${defaultSize || ''} ${borderClass}`}>
+        <div className={`relative bg-slate-100 dark:bg-slate-900 rounded-xl flex justify-center items-center text-center my-6 overflow-hidden shadow-sm ${defaultSize || ''} border border-slate-200/80 dark:border-slate-800`}>
             <a 
-              href={ad.linkUrl}
+              href={ad.linkUrl || '#'}
               target="_blank" 
               rel="noopener noreferrer" 
               className="relative w-full h-full block group"

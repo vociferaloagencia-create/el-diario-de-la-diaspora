@@ -33,8 +33,13 @@ export function DashboardClientWrapper({ children }: { children: ReactNode }) {
     }
 
     // Los administradores pueden ver todo
-    if (role === 'admin') {
+    if (role === 'admin' || role === 'superadmin') {
       return <>{children}</>;
+    }
+
+    // Si es un lector y está en su perfil
+    if (role === 'user' && pathname === '/dashboard/profile') {
+        return <>{children}</>;
     }
 
     // Si es un editor y está en una página permitida
@@ -42,6 +47,11 @@ export function DashboardClientWrapper({ children }: { children: ReactNode }) {
         return <>{children}</>;
     }
     
-    // Redirigir a la página de no-acceso para cualquier otro caso
-    redirect('/no-access');
+    // Si es un lector en cualquier otra sección del dashboard, redirigir a su perfil
+    if (role === 'user') {
+        redirect('/dashboard/profile');
+    }
+
+    // Redirigir a la página de perfil o login para cualquier otro caso
+    redirect('/dashboard/profile');
 }

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import type { FooterSettings, FooterLink } from "@/lib/types";
 import { updateSiteSettings } from "@/lib/firestore";
+import { revalidateHomepage } from "@/app/actions";
 import { useState } from "react";
 import { Loader2, Trash2, ArrowDownToLine, Copyright, Link2, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,7 @@ export function FooterSettingsForm({ initialData }: FooterSettingsFormProps) {
     setIsSubmitting(true);
     try {
       await updateSiteSettings({ footer: values });
+      await revalidateHomepage();
       toast({
         title: '¡Ajustes actualizados!',
         description: `Tus ajustes del pie de página han sido guardados.`,

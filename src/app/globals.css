@@ -158,3 +158,65 @@
   }
 }
 
+/* Google Translate Clean Overrides */
+.goog-te-banner-frame {
+  display: none !important;
+}
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+body {
+  top: 0px !important;
+  position: static !important;
+}
+.goog-te-gadget-icon {
+  display: none !important;
+}
+.goog-tooltip,
+.goog-tooltip:hover {
+  display: none !important;
+}
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+#google_translate_element {
+  display: none !important;
+}
+.skiptranslate {
+  display: none !important;
+}
+body > .skiptranslate {
+  display: none !important;
+}
+
+
+/* Universal Language Overrides for GTranslate */
+html:not([lang="fr"]) .lang-fr-only { display: none !important; }
+html:not([lang="en"]) .lang-en-only { display: none !important; }
+html[lang="fr"] .hide-on-fr { display: none !important; }
+html[lang="en"] .hide-on-en { display: none !important; }
+
+/* Legacy French Overrides */
+html[lang="fr"] .fr-lang-hide {
+  display: none !important;
+}
+html:not([lang="fr"]) .fr-lang-show {
+  display: none !important;
+}
+
+html[lang="fr"] .fr-acceder-hide {
+  display: none !important;
+}
+html:not([lang="fr"]) .fr-acceder-show {
+  display: none !important;
+}
+
+
+
+/* Evitar doble barra de scroll en el Dashboard */
+html:has(.dashboard-wrapper),
+body:has(.dashboard-wrapper) {
+  overflow: hidden !important;
+  height: 100vh !important;
+}

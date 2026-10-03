@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, KeyRound, ShieldCheck, User, Shield, Mail, Calendar } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, KeyRound, ShieldCheck, ShieldAlert, User, Shield, Mail, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -31,12 +31,15 @@ import {
 import { sendPasswordResetEmail, updateUserRole } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 
 export type UserForTable = Pick<AppUser, 'uid' | 'email' | 'role' | 'createdAt'>;
 
 const CellActions = ({ user }: { user: UserForTable }) => {
     const { toast } = useToast();
     const router = useRouter();
+    const { userProfile } = useAuth();
+    const isSuperAdmin = userProfile?.role === 'superadmin';
 
     const handlePasswordReset = async () => {
         if (!user.email) return;
@@ -56,7 +59,7 @@ const CellActions = ({ user }: { user: UserForTable }) => {
         }
     };
 
-    const handleChangeRole = async (newRole: 'admin' | 'editor') => {
+    const handleChangeRole = async (newRole: 'superadmin' | 'admin' | 'editor' | 'user') => {
         if (user.role === newRole) return;
         try {
             await updateUserRole(user.uid, newRole);
@@ -64,7 +67,8 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                 title: "Rol actualizado",
                 description: `El rol de ${user.email} ahora es ${newRole}.`,
             });
-            router.refresh();
+            // Force a hard reload to reflect role changes everywhere if needed
+            window.location.reload();
         } catch (error) {
             console.error("Error al cambiar el rol:", error);
             toast({
@@ -93,6 +97,12 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                         <DropdownMenuSubContent>
+                            {isSuperAdmin && (
+                                <DropdownMenuItem onClick={() => handleChangeRole('superadmin')} disabled={user.role === 'superadmin'} className="gap-2 text-red-600 focus:text-red-700">
+                                    <ShieldCheck className="h-3.5 w-3.5" />
+                                    Super Admin
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onClick={() => handleChangeRole('admin')} disabled={user.role === 'admin'} className="gap-2">
                                 <ShieldCheck className="h-3.5 w-3.5" />
                                 Admin
@@ -100,6 +110,10 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                             <DropdownMenuItem onClick={() => handleChangeRole('editor')} disabled={user.role === 'editor'} className="gap-2">
                                 <User className="h-3.5 w-3.5" />
                                 Editor
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleChangeRole('user')} disabled={user.role === 'user'} className="gap-2">
+                                <User className="h-3.5 w-3.5" />
+                                Usuario Normal
                             </DropdownMenuItem>
                         </DropdownMenuSubContent>
                         </DropdownMenuPortal>
@@ -157,10 +171,14 @@ export const columns: ColumnDef<UserForTable>[] = [
     header: "Rol",
     cell: ({ row }) => {
         const role = row.getValue("role") as string;
-        const variant = role === 'admin' ? 'default' : 'secondary';
+        let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+        
+        if (role === 'superadmin') variant = 'destructive';
+        else if (role === 'admin') variant = 'default';
+
         return (
           <Badge variant={variant} className="capitalize gap-1.5 text-xs">
-            {role === 'admin' ? <ShieldCheck className="h-3 w-3" /> : <User className="h-3 w-3" />}
+            {role === 'superadmin' ? <ShieldAlert className="h-3 w-3" /> : role === 'admin' ? <ShieldCheck className="h-3 w-3" /> : <User className="h-3 w-3" />}
             {role}
           </Badge>
         )

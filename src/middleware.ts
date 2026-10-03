@@ -2,36 +2,31 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('firebaseAuthToken');
+  const token = request.cookies.get('firebaseAuthToken')?.value;
+  const role = request.cookies.get('userRole')?.value;
   const { pathname } = request.nextUrl;
 
-  // Si el usuario intenta acceder a cualquier página del dashboard y no hay token de autenticación,
-  // redirigirlo a la página de inicio de sesión.
+  // 1. Protect dashboard routes if no auth token is present -> redirect to /login
   if (pathname.startsWith('/dashboard') && !token) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Si el usuario ha iniciado sesión e intenta acceder a login/forgot-password,
-  // redirigirlo al dashboard.
-  if (token && (pathname === '/login' || pathname === '/forgot-password')) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-  
-  if (pathname === '/dashboard') {
-    return NextResponse.redirect(new URL('/dashboard/articles', request.url));
+  // 2. Reader user trying to access admin dashboard routes -> Redirect to /dashboard/profile
+  if (role === 'user' && pathname.startsWith('/dashboard') && pathname !== '/dashboard/profile') {
+    return NextResponse.redirect(new URL('/dashboard/profile', request.url));
   }
 
-  // Redirigir desde /no-access si el usuario no ha iniciado sesión
-  if (!token && pathname === '/no-access') {
-      return NextResponse.redirect(new URL('/login', request.url));
+  // 3. Prevent landing on dead-end /no-access page
+  if (pathname === '/no-access') {
+    return NextResponse.redirect(new URL(token ? '/dashboard/profile' : '/login', request.url));
   }
 
+  // 4. Authenticated users and admin/editor/superadmin routes are allowed
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
-  matcher: ['/dashboard/:path*', '/dashboard', '/login', '/forgot-password', '/no-access'],
+  matcher: ['/dashboard/:path*', '/dashboard', '/no-access'],
 };

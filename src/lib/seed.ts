@@ -5,7 +5,7 @@ import seedData from './seed-data.json';
 type SeedData = typeof seedData;
 
 async function seedCollection<T extends { _id: string }>(
-  collectionName: keyof SeedData,
+  collectionName: string,
   data: T[],
 ) {
   if (!data || data.length === 0) {
@@ -71,9 +71,9 @@ async function main() {
     await seedCollection('authors', seedData.authors as any);
     await seedCollection('articles', seedData.articles as any);
     await seedCollection('homepage', seedData.homepage as any);
-    await seedCollection('ad_slots', seedData.ad_slots as any);
-    await seedCollection('weather_config', seedData.weather_config as any);
-    await seedCollection('article_page_config', seedData.article_page_config as any);
+    await seedCollection('ad_slots', (seedData as any).ad_slots as any);
+    await seedCollection('weather_config', (seedData as any).weather_config as any);
+    await seedCollection('article_page_config', (seedData as any).article_page_config as any);
 
     console.log('\nDatabase seeding completed successfully! ✨');
   } catch (error) {

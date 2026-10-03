@@ -50,8 +50,8 @@ function SettingsSubMenu() {
   return (
     <Collapsible defaultOpen={isSettingsPath}>
       <CollapsibleTrigger asChild>
-        <SidebarMenuButton className="w-full justify-start" isActive={isSettingsPath}>
-            <Settings />
+        <SidebarMenuButton className={`w-full justify-start ${isSettingsPath ? 'font-semibold text-primary' : ''}`} isActive={isSettingsPath}>
+            <Settings className={isSettingsPath ? 'text-primary' : ''} />
             Ajustes del Sitio
         </SidebarMenuButton>
       </CollapsibleTrigger>
@@ -62,16 +62,28 @@ function SettingsSubMenu() {
               {group.label}
             </p>
             <div className="space-y-0.5">
-              {group.links.map(link => (
-                <div key={link.href}>
-                  <SidebarMenuButton asChild size="sm" className="w-full justify-start rounded-md" isActive={pathname === link.href}>
-                    <Link href={link.href} className="flex items-center gap-3">
-                      <link.icon className="h-4 w-4 text-muted-foreground" />
-                      <span>{link.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </div>
-              ))}
+              {group.links.map(link => {
+                const isActive = pathname === link.href;
+                return (
+                  <div key={link.href}>
+                    <SidebarMenuButton 
+                      asChild 
+                      size="sm" 
+                      className={`w-full justify-start rounded-md transition-colors ${
+                        isActive 
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs hover:bg-primary hover:text-primary-foreground' 
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                      }`} 
+                      isActive={isActive}
+                    >
+                      <Link href={link.href} className="flex items-center gap-3">
+                        <link.icon className={`h-4 w-4 ${isActive ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                        <span>{link.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -87,6 +99,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     if (!loading && !authUser) {
+      if (typeof document !== 'undefined') {
+        document.cookie = 'firebaseAuthToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+        document.cookie = 'userRole=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+      }
       router.push('/login');
     }
   }, [loading, authUser, router]);
@@ -99,8 +115,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
+
+  const isExplicitSuperAdmin = authUser?.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+  const effectiveProfile = userProfile || (authUser ? {
+    uid: authUser.uid,
+    email: authUser.email || '',
+    role: isExplicitSuperAdmin ? 'superadmin' : 'user',
+    name: authUser.displayName || authUser.email?.split('@')[0] || 'Usuario Lector',
+    photoUrl: authUser.photoURL || '',
+    createdAt: new Date().toISOString(),
+  } : null);
   
-  if (!userProfile) {
+  if (!effectiveProfile) {
     return (
        <div className="flex h-screen w-full items-center justify-center bg-muted/40">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -108,20 +134,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (userProfile.role !== "admin" && userProfile.role !== "editor") {
-    router.push('/');
-    return (
+  // Reader view: Strictly shield admin sidebar, show reader profile only
+  if (effectiveProfile.role !== "admin" && effectiveProfile.role !== "editor" && effectiveProfile.role !== "superadmin") {
+    if (pathname !== '/dashboard/profile') {
+      router.push('/dashboard/profile');
+      return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="ml-4">No tienes permiso para ver esta página. Redirigiendo...</p>
+            <p className="ml-4">Redirigiendo a tu perfil...</p>
         </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white dark:bg-slate-900 px-6 shadow-xs">
+          <Link href="/" className="font-headline text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            El Diario de la Diáspora
+          </Link>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/">Volver al Periódico</Link>
+            </Button>
+            <DashboardHeader />
+          </div>
+        </header>
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          {children}
+        </main>
+      </div>
     );
   }
   
   return (
     <SidebarProvider>
-      <div className="dashboard-wrapper flex w-full h-screen bg-[#F7F9FC] dark:bg-slate-950">
-        <Sidebar>
+      <div className="dashboard-wrapper flex w-full h-screen overflow-hidden bg-[#F7F9FC] dark:bg-slate-950">
+        <Sidebar className="shrink-0 border-r border-slate-200 dark:border-slate-800">
             <div className="flex flex-col h-full">
                 <div className="p-4 border-b dark:border-slate-800 flex justify-center">
                    <Button asChild variant="outline">
@@ -134,7 +183,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                  <Suspense fallback={<p className="p-4">Cargando navegación...</p>}>
                     <SidebarMenu className="p-4 flex-grow space-y-0.5">
                         <SidebarMenuItem>
-                            <SidebarMenuButton asChild isActive={pathname === '/dashboard'}>
+                            <SidebarMenuButton asChild isActive={pathname === '/dashboard'} className={pathname === '/dashboard' ? 'bg-primary/10 text-primary font-bold' : ''}>
                                 <Link href="/dashboard">
                                     <LayoutDashboard />
                                     Panel Principal
@@ -147,9 +196,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 pb-1">
                           CONTENIDO
                         </p>
-                        {(userProfile.role === 'admin' || userProfile.role === 'editor') && (
+                        {(effectiveProfile.role === 'admin' || effectiveProfile.role === 'editor' || effectiveProfile.role === 'superadmin') && (
                              <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/articles')}>
+                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/articles')} className={pathname.startsWith('/dashboard/articles') ? 'bg-primary/10 text-primary font-bold' : ''}>
                                     <Link href="/dashboard/articles">
                                         <Newspaper />
                                         Artículos
@@ -157,9 +206,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         )}
-                        {userProfile.role === 'admin' && (
+                        {(effectiveProfile.role === 'admin' || effectiveProfile.role === 'superadmin') && (
                              <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/categories')}>
+                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/categories')} className={pathname.startsWith('/dashboard/categories') ? 'bg-primary/10 text-primary font-bold' : ''}>
                                     <Link href="/dashboard/categories">
                                         <LayoutGrid />
                                         Categorías
@@ -173,10 +222,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 pb-1">
                           ADMINISTRACIÓN
                         </p>
-                        {userProfile.role === 'admin' && (
+                        {(effectiveProfile.role === 'admin' || effectiveProfile.role === 'superadmin') && (
                           <>
                              <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/statistics')}>
+                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/statistics')} className={pathname.startsWith('/dashboard/statistics') ? 'bg-primary/10 text-primary font-bold' : ''}>
                                     <Link href="/dashboard/statistics">
                                         <BarChart3 />
                                         Estadísticas
@@ -184,7 +233,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                              <SidebarMenuItem>
-                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/users')}>
+                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/users')} className={pathname.startsWith('/dashboard/users') ? 'bg-primary/10 text-primary font-bold' : ''}>
                                     <Link href="/dashboard/users">
                                         <Users />
                                         Usuarios
@@ -201,10 +250,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
         </Sidebar>
         
-        <div className="flex flex-col flex-1 h-full min-w-0">
+        <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
             <DashboardHeader />
-            <main className="flex-1 overflow-y-auto">
-                <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <main className="flex-1 overflow-y-auto min-h-0">
+                <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
                     {children}
                 </div>
             </main>

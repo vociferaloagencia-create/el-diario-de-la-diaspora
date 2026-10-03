@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import type { BrandingSettings } from "@/lib/types";
 import { updateSiteSettings, uploadImage } from "@/lib/firestore";
+import { revalidateHomepage } from "@/app/actions";
 import { useState } from "react";
 import { Loader2, Palette } from "lucide-react";
 import Image from "next/image";
@@ -28,10 +29,10 @@ import { useToast } from "@/hooks/use-toast";
 const brandingSchema = z.object({
   siteName: z.string().min(1, "El nombre del sitio es obligatorio"),
   tagline: z.string().optional(),
-  logoUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  logoUrl: z.string().optional().or(z.literal('')),
   logoWidth: z.coerce.number().min(10, "El ancho debe ser al menos 10").optional(),
   logoHeight: z.coerce.number().min(10, "La altura debe ser al menos 10").optional(),
-  logoFooterUrl: z.string().url("URL inválida").optional().or(z.literal('')),
+  logoFooterUrl: z.string().optional().or(z.literal('')),
   logoFooterWidth: z.coerce.number().min(10, "El ancho debe ser al menos 10").optional(),
   logoFooterHeight: z.coerce.number().min(10, "La altura debe ser al menos 10").optional(),
   showSiteNameInHeader: z.boolean().default(true),
@@ -103,6 +104,7 @@ export function BrandingForm({ initialData }: BrandingFormProps) {
     try {
       const settingsToUpdate = { branding: values };
       await updateSiteSettings(settingsToUpdate);
+      await revalidateHomepage();
       toast({
         title: '¡Ajustes actualizados!',
         description: `Tus ajustes de marca han sido guardados.`,

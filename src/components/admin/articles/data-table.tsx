@@ -44,8 +44,13 @@ export function DataTable<TData, TValue>({
   filterColumn = "title",
   emptyMessage = "No hay resultados.",
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = useState<SortingState>([{ id: 'publishedAt', desc: true }])
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const hasPublishedAt = columns.some(
+    col => (col as any).accessorKey === 'publishedAt' || col.id === 'publishedAt'
+  );
+  const [sorting, setSorting] = useState<SortingState>(
+    hasPublishedAt ? [{ id: 'publishedAt', desc: true }] : []
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 
   const table = useReactTable({
     data,

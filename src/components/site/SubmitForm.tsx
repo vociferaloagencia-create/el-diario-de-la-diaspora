@@ -1,18 +1,12 @@
-
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
-import { addArticle, uploadImage } from "@/lib/firestore";
-import type { Category, Article } from "@/lib/types";
-
-import { Button } from "@/components/ui/button";
+import { Loader2, MailCheck, User, Phone, Mail } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -23,128 +17,60 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Timestamp } from "firebase/firestore";
-import { useAuth } from "@/hooks/use-auth";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
-import Link from "next/link";
-
-
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+import { useToast } from "@/hooks/use-toast";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const formSchema = z.object({
-  title: z.string().min(10, {
-    message: "El título debe tener al menos 10 caracteres.",
+  name: z.string().min(2, {
+    message: "El nombre debe tener al menos 2 caracteres.",
   }).max(100, {
-    message: "El título no debe exceder los 100 caracteres.",
+    message: "El nombre no debe exceder los 100 caracteres.",
   }),
-  category: z.string().optional(),
-  content: z.string().min(50, {
-    message: "El contenido debe tener al menos 50 caracteres.",
+  email: z.string().email({
+    message: "Debes ingresar un correo electrónico válido.",
   }),
-  imageUrl: z.string().optional(),
+  phone: z.string().optional(),
 });
 
-interface SubmitFormProps {
-  categories: Category[];
-}
-
-export function SubmitForm({ categories }: SubmitFormProps) {
-  const router = useRouter();
+export function SubmitForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { authUser, userProfile } = useAuth();
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      imageUrl: "",
+      name: "",
+      email: "",
+      phone: "",
     },
   });
 
-  useEffect(() => {
-    if (imageFile) {
-      const handleUpload = async () => {
-        setIsUploading(true);
-        toast({ title: "Subiendo imagen...", description: "Por favor, espera." });
-        try {
-          const downloadURL = await uploadImage(imageFile);
-          form.setValue('imageUrl', downloadURL, { shouldValidate: true });
-          toast({ title: "Imagen subida", description: "La imagen se ha subido correctamente." });
-        } catch (error) {
-          toast({ variant: 'destructive', title: "Error", description: "No se pudo subir la imagen." });
-          console.error(error);
-        } finally {
-          setIsUploading(false);
-          setImageFile(null);
-        }
-      };
-      handleUpload();
-    }
-  }, [imageFile, form, toast]);
-
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!authUser || !userProfile) {
-        toast({ title: "Error de Autenticación", description: "Debes iniciar sesión para enviar un artículo.", variant: "destructive"});
-        return;
-    }
-
     setIsSubmitting(true);
     try {
-      const slug = values.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-      const categoryId = values.category || 'sin-categoria';
-
-      const newArticle: Omit<Article, '_id' | 'id'> = {
-        title: values.title,
-        slug: slug,
-        summary: values.content.substring(0, 150),
-        content: values.content,
-        categoryId: categoryId,
-        subCategoryId: null,
-        authorId: userProfile.uid,
-        heroImageUrl: values.imageUrl || '',
-        thumbnailUrl: values.imageUrl || '',
-        status: "published",
-        publishedAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        createdAt: Timestamp.now(),
-        readingTimeMinutes: Math.ceil(values.content.split(' ').length / 200),
-        tags: values.category ? [values.category] : [],
-        allowComments: true,
-        showOnMostRead: false,
-        mostReadOrder: null,
-        isMainHero: false,
-        heroOrder: undefined,
-      };
-
-      toast({ title: "Publicando artículo...", description: "Esto tardará solo un momento." });
-      await addArticle(newArticle);
+      // Guardar el registro en Firebase Firestore
+      await addDoc(collection(db, 'subscribers'), {
+        name: values.name,
+        email: values.email,
+        phone: values.phone || null,
+        subscribedAt: serverTimestamp(),
+        source: 'subscription_page'
+      });
 
       toast({
-        title: "¡Artículo Enviado!",
-        description: "Tu artículo ha sido publicado con éxito.",
+        title: "¡Suscripción Exitosa!",
+        description: "Te hemos añadido a nuestra lista de noticias.",
       });
       
-      router.push('/');
-      router.refresh();
-
+      setIsSuccess(true);
+      form.reset();
     } catch (error) {
-      console.error("Error al enviar el artículo: ", error);
+      console.error("Error al suscribirse: ", error);
       toast({
-        title: "Envío Fallido",
-        description: "Hubo un error al enviar tu artículo. Revisa la consola para más detalles.",
+        title: "Suscripción Fallida",
+        description: "Hubo un error al procesar tu solicitud. Inténtalo de nuevo más tarde.",
         variant: "destructive",
       });
     } finally {
@@ -152,34 +78,47 @@ export function SubmitForm({ categories }: SubmitFormProps) {
     }
   }
 
-  if (!authUser) {
-      return (
-          <Alert variant="destructive">
-              <AlertTitle>Autenticación Requerida</AlertTitle>
-              <AlertDescription>
-                  Debes iniciar sesión para enviar un artículo. Por favor,{' '}
-                   <Link href="/login" className="font-bold underline">
-                      Inicia Sesión
-                   </Link>
-                   .
-              </AlertDescription>
-          </Alert>
-      )
+  if (isSuccess) {
+    return (
+      <Card className="border-green-100 bg-green-50/50 dark:bg-green-900/10 dark:border-green-900/30">
+        <CardContent className="p-10 flex flex-col items-center justify-center text-center space-y-4">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center">
+            <MailCheck className="w-8 h-8" />
+          </div>
+          <h3 className="text-2xl font-headline font-bold text-slate-800 dark:text-slate-100">
+            ¡Gracias por suscribirte!
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 max-w-sm">
+            Tus datos han sido registrados correctamente. Pronto comenzarás a recibir nuestras mejores noticias.
+          </p>
+          <Button 
+            className="mt-4" 
+            variant="outline"
+            onClick={() => setIsSuccess(false)}
+          >
+            Suscribir a otra persona
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
-    <Card>
-      <CardContent className="p-6">
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800">
+      <CardContent className="p-6 sm:p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título</FormLabel>
+                  <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">Nombre Completo <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Input placeholder="Escribe un título atractivo" {...field} />
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                      <Input placeholder="Ej. Juan Pérez" className="pl-10 h-12" {...field} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -188,22 +127,19 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
             <FormField
               control={form.control}
-              name="category"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categoría (Opcional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una categoría" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.filter(c => c.isVisible).map(cat => (
-                        <SelectItem key={cat._id} value={cat.slug}>{cat.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">Correo Electrónico <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                      <Input placeholder="tu@correo.com" type="email" className="pl-10 h-12" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Nunca compartiremos tu correo con nadie más.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,52 +147,24 @@ export function SubmitForm({ categories }: SubmitFormProps) {
 
             <FormField
               control={form.control}
-              name="content"
+              name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contenido</FormLabel>
+                  <FormLabel className="text-slate-700 dark:text-slate-300 font-bold">Teléfono <span className="text-slate-400 font-normal text-sm">(Opcional)</span></FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Escribe tu artículo aquí..."
-                      className="min-h-[200px]"
-                      {...field}
-                    />
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+                      <Input placeholder="+1 (555) 000-0000" type="tel" className="pl-10 h-12" {...field} />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormItem>
-              <FormLabel>Imagen Destacada (Opcional)</FormLabel>
-              {form.watch('imageUrl') && (
-                  <div className="mt-2">
-                      <img src={form.watch('imageUrl')} alt="Vista previa" className="w-full h-auto rounded-md" />
-                  </div>
-              )}
-              <FormControl>
-                <Input 
-                  type="file" 
-                  accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setImageFile(file);
-                    }
-                  }}
-                  disabled={isUploading}
-                />
-              </FormControl>
-              <FormDescription>
-                Solo se admiten formatos .jpg, .png y .webp.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-
-
-            <Button type="submit" disabled={isSubmitting || isUploading} className="w-full">
-              {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Enviando...' : isUploading ? 'Subiendo...' : 'Enviar Artículo'}
+            <Button type="submit" disabled={isSubmitting} className="w-full h-12 text-base font-bold uppercase tracking-wider">
+              {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {isSubmitting ? 'Registrando...' : 'Suscribirme Ahora'}
             </Button>
           </form>
         </Form>

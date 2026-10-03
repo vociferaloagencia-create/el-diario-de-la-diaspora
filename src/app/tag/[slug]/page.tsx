@@ -10,13 +10,14 @@ import { Tag } from "lucide-react";
 export const dynamic = 'force-dynamic';
 
 interface TagPageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: TagPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
   const settings = await getSiteSettings();
   const siteName = settings.branding?.siteName || 'La Cifra';
-  const tag = decodeURIComponent(params.slug);
+  const tag = decodeURIComponent(resolvedParams.slug);
   return {
     title: `#${tag} | ${siteName}`,
     description: `Artículos etiquetados con "${tag}"`,
@@ -25,7 +26,8 @@ export async function generateMetadata({ params }: TagPageProps): Promise<Metada
 }
 
 export default async function TagPage({ params }: TagPageProps) {
-  const tag = decodeURIComponent(params.slug);
+  const resolvedParams = await params;
+  const tag = decodeURIComponent(resolvedParams.slug);
   const [settings, categories, allArticles] = await Promise.all([
     getSiteSettings(),
     getCategories(),

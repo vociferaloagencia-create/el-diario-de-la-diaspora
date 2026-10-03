@@ -4,7 +4,7 @@ import { getHeroArticles, getLatestArticles, getMostReadArticles, getSiteSetting
 import type { Article, Category } from "@/lib/types";
 import { Footer } from "@/components/site/Footer";
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const [settings, sortedHeroes, latestPublished, mostReadArticles, categories] = await Promise.all([

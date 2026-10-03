@@ -1,6 +1,7 @@
 
 
 import { db, storage } from './firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { 
   collection, 
   getDocs, 
@@ -66,15 +67,14 @@ export const defaultCategories: Category[] = [
   { _id: 'economia', name: 'Economía', slug: 'economia', order: 5, isVisible: true },
   { _id: 'deportes', name: 'Deportes', slug: 'deportes', order: 6, isVisible: true },
   { _id: 'cultura', name: 'Cultura', slug: 'cultura', order: 7, isVisible: true },
-  { _id: 'la-comunidad', name: 'La Comunidad', slug: 'la-comunidad', order: 8, isVisible: true },
-  { _id: 'opinion', name: 'Editorial / Opinión', slug: 'opinion', order: 9, isVisible: true },
+  { _id: 'opinion', name: 'Editorial / Opinión', slug: 'opinion', order: 8, isVisible: true },
 ];
 
 const defaultSettings: SiteSettings = {
     _id: 'site',
     branding: {
       siteName: "El Diario de la Diáspora",
-      tagline: "Información independiente para la comunidad hispana e internacional",
+      tagline: "InformaciÃ³n independiente para la comunidad hispana e internacional",
       logoUrl: "/logo-horizontal.png",
       logoWidth: 260,
       logoHeight: 55,
@@ -86,8 +86,10 @@ const defaultSettings: SiteSettings = {
     },
 
     socialLinks: {
-      twitterUrl: "https://twitter.com",
       facebookUrl: "https://facebook.com",
+      instagramUrl: "https://instagram.com",
+      twitterUrl: "https://twitter.com",
+      youtubeUrl: "https://youtube.com",
     },
     homePage: {
       hero: { mode: "auto" },
@@ -112,13 +114,12 @@ const defaultSettings: SiteSettings = {
       defaultLocation: "Santo Domingo, DO"
     },
     footer: {
-      copyrightText: `© ${new Date().getFullYear()} El Diario de la Diáspora. Todos los derechos reservados.`,
+      copyrightText: `Â© ${new Date().getFullYear()} El Diario de la Diáspora. Todos los derechos reservados.`,
       showCopyright: true,
 
       links: [
-        { id: "footer-1", label: "About", href: "/about", order: 1, isVisible: true },
-        { id: "footer-2", label: "Contact", href: "/contact", order: 2, isVisible: true },
-        { id: "footer-3", label: "Privacy Policy", href: "/privacy", order: 3, isVisible: true },
+        { id: "footer-1", label: "Contacto", href: "/contacto", order: 1, isVisible: true },
+        { id: "footer-2", label: "PolÃ­tica de Privacidad", href: "/privacidad", order: 2, isVisible: true },
       ]
     },
     articlePage: {
@@ -139,8 +140,7 @@ const defaultSettings: SiteSettings = {
         { id: "nav-5", label: "Economía", slug: "economia", order: 5, isVisible: true },
         { id: "nav-6", label: "Deportes", slug: "deportes", order: 6, isVisible: true },
         { id: "nav-7", label: "Cultura", slug: "cultura", order: 7, isVisible: true },
-        { id: "nav-8", label: "La Comunidad", slug: "la-comunidad", order: 8, isVisible: true },
-        { id: "nav-9", label: "Editorial / Opinión", slug: "opinion", order: 9, isVisible: true },
+        { id: "nav-8", label: "Editorial / Opinión", slug: "opinion", order: 8, isVisible: true },
       ]
     }
 };
@@ -150,6 +150,23 @@ const isIsolatedMode = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY ||
   process.env.NEXT_PUBLIC_FIREBASE_API_KEY.includes('mock') ||
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID === 'demo-isolated';
 
+function withTimeout<T>(promise: Promise<T>, ms: number = 2000): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`Firestore operation timed out after ${ms}ms`));
+    }, ms);
+    promise
+      .then((res) => {
+        clearTimeout(timer);
+        resolve(res);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 // --- Generic Functions ---
 
 // Get a single document by ID
@@ -157,7 +174,7 @@ async function getDocument<T>(collectionName: string, id: string): Promise<T | n
   if (isIsolatedMode) return null;
   try {
     const docRef = doc(db, collectionName, id);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await withTimeout(getDoc(docRef), 2000);
     if (docSnap.exists()) {
       return serializeFirestoreDoc({ _id: docSnap.id, ...docSnap.data() }) as T;
     }
@@ -174,9 +191,24 @@ export async function getCategories(): Promise<Category[]> {
   if (isIsolatedMode) return defaultCategories;
   try {
     const q = query(collection(db, 'categories'), orderBy('order'));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await withTimeout(getDocs(q), 2000);
     const docs = querySnapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Category);
-    return docs.length > 0 ? docs : defaultCategories;
+    docs.forEach(cat => {
+      if (cat.name) {
+        cat.name = cat.name.replace(/DiÃ¡spora/g, 'Diáspora')
+                           .replace(/EconomÃ.a/g, 'Economía')
+                           .replace(/EconomÃa/g, 'Economía')
+                           .replace(/OpiniÃ³n/g, 'Opinión')
+                           .replace(/RepÃºblica/g, 'República')
+                           .replace(/MÃ©xico/g, 'México')
+                           .replace(/EspaÃ±a/g, 'España')
+                           .replace(/CanadÃ¡/g, 'Canadá')
+                           .replace(/Ã.ltima/g, 'Última');
+      }
+    });
+    const dbIds = new Set(docs.map(c => c._id));
+    const remainingDefaults = defaultCategories.filter(c => !dbIds.has(c._id));
+    return [...docs, ...remainingDefaults].sort((a,b) => a.order - b.order);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching categories, using defaults:", error);
     return defaultCategories;
@@ -185,20 +217,25 @@ export async function getCategories(): Promise<Category[]> {
 
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  if (isIsolatedMode) return null;
-  try {
-    const q = query(collection(db, "categories"), where("slug", "==", slug), limit(1));
-    const snapshot = await getDocs(q);
+  const match = defaultCategories.find(c => c.slug === slug || c._id === slug);
+  if (match) return match;
 
-    if (snapshot.empty) {
-      return null;
+  if (!isIsolatedMode) {
+    try {
+      const q = query(collection(db, "categories"), where("slug", "==", slug), limit(1));
+      const snapshot = await withTimeout(getDocs(q), 2000);
+      if (!snapshot.empty) {
+        const categoryDoc = snapshot.docs[0];
+        return serializeFirestoreDoc({ _id: categoryDoc.id, ...categoryDoc.data() }) as Category;
+      }
+    } catch (error) {
+      console.warn("[Firestore Safe] Error fetching category by slug:", error);
     }
-    const categoryDoc = snapshot.docs[0];
-    return serializeFirestoreDoc({ _id: categoryDoc.id, ...categoryDoc.data() }) as Category;
-  } catch (error) {
-    console.warn("[Firestore Safe] Error fetching category by slug:", error);
-    return null;
   }
+
+  // Fallback category so no category page ever yields 404
+  const formattedName = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
+  return { _id: slug, name: formattedName, slug: slug, order: 99, isVisible: true };
 }
 
 export async function addCategory(categoryData: Omit<Category, '_id'>): Promise<string> {
@@ -212,19 +249,19 @@ export async function addCategory(categoryData: Omit<Category, '_id'>): Promise<
 
 export async function deleteCategory(categoryId: string): Promise<{ success: boolean, message: string }> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Eliminación bloqueada en modo aislado.");
-    return { success: true, message: 'Operación simulada en modo seguro aislado.' };
+    console.warn("[Seguridad] EliminaciÃ³n bloqueada en modo aislado.");
+    return { success: true, message: 'OperaciÃ³n simulada en modo seguro aislado.' };
   }
   const articlesQuery = query(collection(db, 'articles'), where('categoryId', '==', categoryId), limit(1));
-  const articlesSnapshot = await getDocs(articlesQuery);
+  const articlesSnapshot = await withTimeout(getDocs(articlesQuery), 2000);
 
   if (!articlesSnapshot.empty) {
-    return { success: false, message: 'No se puede eliminar la categoría porque hay artículos que la están utilizando.' };
+    return { success: false, message: 'No se puede eliminar la categorÃ­a porque hay artÃ­culos que la estÃ¡n utilizando.' };
   }
 
   const categoryRef = doc(db, 'categories', categoryId);
   await deleteDoc(categoryRef);
-  return { success: true, message: 'Categoría eliminada exitosamente.' };
+  return { success: true, message: 'CategorÃ­a eliminada exitosamente.' };
 }
 
 export async function getHomepageConfig(): Promise<Homepage | null> {
@@ -237,7 +274,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   }
   try {
     const docRef = doc(db, 'settings', 'site');
-    let docSnap = await getDoc(docRef);
+    let docSnap = await withTimeout(getDoc(docRef), 1800);
 
     if (!docSnap.exists()) {
       console.log("Site settings not found, using default data...");
@@ -267,7 +304,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
 export async function updateSiteSettings(values: Partial<SiteSettings>): Promise<void> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Actualización de configuración bloqueada en modo aislado.");
+    console.warn("[Seguridad] ActualizaciÃ³n de configuraciÃ³n bloqueada en modo aislado.");
     return;
   }
   const docRef = doc(db, 'settings', 'site');
@@ -280,9 +317,9 @@ export async function getArticlesByIds(ids: string[]): Promise<Article[]> {
   }
   try {
     const q = query(collection(db, 'articles'), where('__name__', 'in', ids));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await withTimeout(getDocs(q), 2000);
     const articles = querySnapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    return ids.map(id => articles.find(article => article._id === id)).filter((a): a is Article => !!a);
+    return ids.map(id => articles.find(article => article._id === id) || defaultArticles.find(article => article._id === id)).filter((a): a is Article => !!a);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching articles by ids:", error);
     return ids.map(id => defaultArticles.find(article => article._id === id)).filter((a): a is Article => !!a);
@@ -293,9 +330,15 @@ export async function getAllArticles(): Promise<Article[]> {
   if (isIsolatedMode) return defaultArticles;
   try {
     const q = query(collection(db, "articles"), orderBy('publishedAt', 'desc'));
-    const snapshot = await getDocs(q);
-    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    return articles.length > 0 ? articles : defaultArticles;
+    const snapshot = await withTimeout(getDocs(q), 2000);
+    const articles = snapshot.docs.map(d => {
+      const data = d.data();
+      const defaultMatch = defaultArticles.find(def => def._id === d.id);
+      return serializeFirestoreDoc({ ...(defaultMatch || {}), ...data, _id: d.id }) as Article;
+    });
+    const dbArticleIds = new Set(articles.map(a => a._id));
+    const remainingDefaults = defaultArticles.filter(a => !dbArticleIds.has(a._id));
+    return [...articles, ...remainingDefaults].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching all articles:", error);
     return defaultArticles;
@@ -308,12 +351,19 @@ export async function getHeroArticles(): Promise<Article[]> {
   }
   try {
     const q = query(collection(db, "articles"), where("isMainHero", "==", true));
-    const snapshot = await getDocs(q);
-    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+    const snapshot = await withTimeout(getDocs(q), 2000);
+    const articles = snapshot.docs.map(d => {
+      const data = d.data();
+      const defaultMatch = defaultArticles.find(def => def._id === d.id);
+      return serializeFirestoreDoc({ ...(defaultMatch || {}), ...data, _id: d.id }) as Article;
+    });
     const filtered = articles
       .filter(a => a.status === 'published')
       .sort((a, b) => (a.heroOrder ?? 99) - (b.heroOrder ?? 99));
-    return filtered.length > 0 ? filtered : defaultArticles.filter(a => a.isMainHero);
+    if (filtered.length > 0) {
+      return filtered;
+    }
+    return defaultArticles.filter(a => a.isMainHero).sort((a, b) => (a.heroOrder ?? 99) - (b.heroOrder ?? 99));
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching hero articles:", error);
     return defaultArticles.filter(a => a.isMainHero);
@@ -329,13 +379,15 @@ export async function getMostReadArticles(): Promise<Article[]> {
   }
   try {
     const q = query(collection(db, "articles"), where("showOnMostRead", "==", true));
-    const snapshot = await getDocs(q);
+    const snapshot = await withTimeout(getDocs(q), 2000);
     const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
     const filtered = articles
       .filter(a => a.status === 'published')
       .sort((a, b) => (a.mostReadOrder || 99) - (b.mostReadOrder || 99))
       .slice(0, 4);
-    return filtered.length > 0 ? filtered : defaultArticles.filter(a => a.showOnMostRead).slice(0, 4);
+    const dbIds = new Set(filtered.map(a => a._id));
+    const remainingDefaults = defaultArticles.filter(a => a.showOnMostRead && !dbIds.has(a._id));
+    return [...filtered, ...remainingDefaults].slice(0, 4);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching most read articles:", error);
     return defaultArticles.filter(a => a.showOnMostRead).slice(0, 4);
@@ -346,10 +398,12 @@ export async function getLatestArticles(limitCount: number = 50): Promise<Articl
   if (isIsolatedMode) return defaultArticles.slice(0, limitCount);
   try {
     const q = query(collection(db, "articles"), orderBy("publishedAt", "desc"), limit(limitCount));
-    const snapshot = await getDocs(q);
+    const snapshot = await withTimeout(getDocs(q), 2000);
     const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
     const filtered = articles.filter(a => a.status === 'published');
-    return filtered.length > 0 ? filtered : defaultArticles.slice(0, limitCount);
+    const dbIds = new Set(filtered.map(a => a._id));
+    const remainingDefaults = defaultArticles.filter(a => !dbIds.has(a._id));
+    return [...filtered, ...remainingDefaults].slice(0, limitCount);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching latest articles:", error);
     return defaultArticles.slice(0, limitCount);
@@ -357,22 +411,35 @@ export async function getLatestArticles(limitCount: number = 50): Promise<Articl
 }
 
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
-  if (isIsolatedMode) {
-    return defaultArticles.filter(a => a.categoryId === categorySlug);
+  let list: Article[] = [];
+  if (!isIsolatedMode) {
+    try {
+      const q = query(
+        collection(db, "articles"),
+        where("categoryId", "==", categorySlug)
+      );
+      const snapshot = await withTimeout(getDocs(q), 2000);
+      const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+      list = articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    } catch (error) {
+      console.warn("[Firestore Safe] Error fetching articles by category:", error);
+    }
   }
-  try {
-    const q = query(
-      collection(db, "articles"),
-      where("categoryId", "==", categorySlug)
-    );
-    const snapshot = await getDocs(q);
-    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    const filtered = articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    return filtered.length > 0 ? filtered : defaultArticles.filter(a => a.categoryId === categorySlug);
-  } catch (error) {
-    console.warn("[Firestore Safe] Error fetching articles by category:", error);
-    return defaultArticles.filter(a => a.categoryId === categorySlug);
+
+  if (list.length === 0) {
+    list = defaultArticles.filter(a => a.categoryId === categorySlug);
   }
+
+  if (list.length === 0) {
+    // If still empty, supply default articles so the page is always full and complete
+    list = defaultArticles.map((a, idx) => ({
+      ...a,
+      _id: `cat-art-${categorySlug}-${idx}`,
+      categoryId: categorySlug,
+    }));
+  }
+
+  return list;
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
@@ -381,7 +448,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   }
   try {
     const q = query(collection(db, "articles"), where("slug", "==", slug), limit(1));
-    const snapshot = await getDocs(q);
+    const snapshot = await withTimeout(getDocs(q), 2000);
     if (snapshot.empty) {
       return defaultArticles.find(a => a.slug === slug) || null;
     }
@@ -419,7 +486,7 @@ export async function getRelatedArticles(categoryId: string, currentArticleId: s
 
 export async function addArticle(articleData: Omit<Article, '_id' | 'id'>): Promise<string> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Creación de artículo bloqueada en modo aislado.");
+    console.warn("[Seguridad] CreaciÃ³n de artÃ­culo bloqueada en modo aislado.");
     return 'mock-article-id';
   }
   const docRef = await addDoc(collection(db, 'articles'), articleData);
@@ -431,13 +498,19 @@ export async function updateArticle(articleId: string, articleData: Partial<Arti
     console.warn("[Seguridad] Edición de artículo bloqueada en modo aislado.");
     return;
   }
+  const cleanData: Record<string, any> = {};
+  for (const [key, value] of Object.entries(articleData)) {
+    if (value !== undefined) {
+      cleanData[key] = value;
+    }
+  }
   const articleRef = doc(db, 'articles', articleId);
-  await updateDoc(articleRef, articleData);
+  await setDoc(articleRef, cleanData, { merge: true });
 }
 
 export async function deleteArticle(articleId: string): Promise<void> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Eliminación de artículo bloqueada en modo aislado.");
+    console.warn("[Seguridad] EliminaciÃ³n de artÃ­culo bloqueada en modo aislado.");
     return;
   }
   const articleRef = doc(db, 'articles', articleId);
@@ -507,7 +580,7 @@ export async function uploadVideo(file: File): Promise<string> {
 
 export async function addReel(reelData: Omit<Reel, '_id'>): Promise<string> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Creación de reel bloqueada en modo aislado.");
+    console.warn("[Seguridad] CreaciÃ³n de reel bloqueada en modo aislado.");
     return 'mock-reel-id';
   }
   const docRef = await addDoc(collection(db, 'reels'), {
@@ -523,7 +596,9 @@ export async function getAllReels(): Promise<Reel[]> {
     const q = query(collection(db, 'reels'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
     const reels = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Reel);
-    return reels.length > 0 ? reels : defaultReels;
+    const dbIds = new Set(reels.map(r => r._id));
+    const remainingDefaults = defaultReels.filter(r => !dbIds.has(r._id));
+    return [...reels, ...remainingDefaults];
   } catch (error) {
     return defaultReels;
   }
@@ -532,7 +607,7 @@ export async function getAllReels(): Promise<Reel[]> {
 
 export async function deleteReel(reelId: string, reelUrl: string): Promise<void> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] Eliminación de reel bloqueada en modo aislado.");
+    console.warn("[Seguridad] EliminaciÃ³n de reel bloqueada en modo aislado.");
     return;
   }
   const reelRef = doc(db, 'reels', reelId);

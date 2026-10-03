@@ -23,14 +23,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -41,6 +40,8 @@ export default function RootLayout({
           {children}
           <Toaster />
         </AuthProvider>
+
+        
       </body>
     </html>
   );

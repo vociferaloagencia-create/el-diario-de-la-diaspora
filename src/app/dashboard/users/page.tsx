@@ -33,12 +33,13 @@ export default function UsersPage() {
     );
   }
 
+  const superadmins = users.filter(u => u.role === 'superadmin');
   const admins = users.filter(u => u.role === 'admin');
 
   const stats = [
     { label: "Total usuarios", value: users.length, icon: Users, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
-    { label: "Administradores", value: admins.length, icon: Shield, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
-    { label: "Editores", value: users.length - admins.length, icon: UserCog, color: "text-green-600 bg-green-100 dark:bg-green-900/30" },
+    { label: "Super & Admins", value: superadmins.length + admins.length, icon: Shield, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
+    { label: "Editores", value: users.filter(u => u.role === 'editor').length, icon: UserCog, color: "text-green-600 bg-green-100 dark:bg-green-900/30" },
   ];
 
   return (
