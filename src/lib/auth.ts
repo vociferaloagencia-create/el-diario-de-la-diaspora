@@ -370,8 +370,7 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      const isAdminEmail = data.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
-      const effectiveRole = (data.role === 'admin' && !isAdminEmail) ? 'user' : (data.role || 'user');
+      const effectiveRole = data.role || (data.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com' ? 'superadmin' : 'user');
       return {
           uid,
           email: data.email || '',

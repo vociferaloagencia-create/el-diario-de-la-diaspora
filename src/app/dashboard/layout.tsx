@@ -119,14 +119,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const isExplicitSuperAdmin = authUser?.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+  const cookieRole = typeof document !== 'undefined'
+    ? document.cookie.split('; ').find(row => row.startsWith('userRole='))?.split('=')[1]
+    : undefined;
+  const resolvedRole = userProfile?.role || (cookieRole as any) || (isExplicitSuperAdmin ? 'superadmin' : 'user');
+
   const effectiveProfile = userProfile || (authUser ? {
     uid: authUser.uid,
     email: authUser.email || '',
-    role: isExplicitSuperAdmin ? 'superadmin' : 'user',
+    role: resolvedRole,
     name: authUser.displayName || authUser.email?.split('@')[0] || 'Usuario Lector',
     photoUrl: authUser.photoURL || '',
     createdAt: new Date().toISOString(),
   } : null);
+
+  const isStaff = effectiveProfile?.role === "admin" || effectiveProfile?.role === "editor" || effectiveProfile?.role === "superadmin";
+
+  useEffect(() => {
+    if (!loading && effectiveProfile && !isStaff && pathname !== '/dashboard/profile') {
+      router.replace('/dashboard/profile');
+    }
+  }, [loading, effectiveProfile, isStaff, pathname, router]);
   
   if (!effectiveProfile) {
     return (
@@ -137,35 +150,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   // Reader view: Strictly shield admin sidebar, show reader profile only
-  if (effectiveProfile.role !== "admin" && effectiveProfile.role !== "editor" && effectiveProfile.role !== "superadmin") {
+  if (!isStaff) {
     if (pathname !== '/dashboard/profile') {
-      router.push('/dashboard/profile');
       return (
-        <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex h-screen w-full items-center justify-center bg-muted/40">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="ml-4">Redirigiendo a tu perfil...</p>
+            <p className="ml-4 text-sm text-muted-foreground">Redirigiendo a tu perfil...</p>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white dark:bg-slate-900 px-6 shadow-xs">
-          <Link href="/" className="font-headline text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            El Diario de la Diáspora
-          </Link>
-          <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/">Volver al Periódico</Link>
-            </Button>
-            <DashboardHeader />
-          </div>
-        </header>
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          {children}
-        </main>
-      </div>
+      <SidebarProvider>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 w-full">
+          <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white dark:bg-slate-900 px-6 shadow-xs">
+            <Link href="/" className="font-headline text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" />
+              El Diario de la Diáspora
+            </Link>
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/">Volver al Periódico</Link>
+              </Button>
+              <DashboardHeader />
+            </div>
+          </header>
+          <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            {children}
+          </main>
+        </div>
+      </SidebarProvider>
     );
   }
   
