@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, Trash2, ExternalLink, Pencil } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, Trash2, ExternalLink, Pencil, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -23,7 +24,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { deleteArticle } from "@/lib/firestore"
 import { useToast } from "@/hooks/use-toast"
@@ -31,19 +31,30 @@ import { useRouter } from "next/navigation"
 
 export type ArticleForTable = Pick<Article, '_id' | 'title' | 'slug' | 'status' | 'publishedAt'>;
 
+interface CellActionsProps {
+  article: ArticleForTable;
+  onDeleted?: (id: string) => void;
+}
 
-const CellActions = ({ article }: { article: ArticleForTable }) => {
+const CellActions = ({ article, onDeleted }: CellActionsProps) => {
+    const [open, setOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const { toast } = useToast();
     const router = useRouter();
 
     const handleDelete = async () => {
-        if (!article._id) return;
+        if (!article._id || isDeleting) return;
+        setIsDeleting(true);
         try {
             await deleteArticle(article._id);
             toast({
                 title: "Artículo eliminado",
                 description: `El artículo "${article.title}" ha sido eliminado permanentemente.`,
             });
+            if (onDeleted) {
+                onDeleted(article._id);
+            }
+            setOpen(false);
             router.refresh();
         } catch (error) {
             console.error("Error al eliminar el artículo:", error);
@@ -52,12 +63,14 @@ const CellActions = ({ article }: { article: ArticleForTable }) => {
                 description: "No se pudo eliminar el artículo. Por favor, inténtalo de nuevo.",
                 variant: "destructive",
             });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
     return (
-        <AlertDialog>
-             <DropdownMenu>
+        <>
+            <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
                     <span className="sr-only">Abrir menú</span>
@@ -67,46 +80,66 @@ const CellActions = ({ article }: { article: ArticleForTable }) => {
                 <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                      <Link href={`/articles/${article.slug}`} target="_blank" className="flex items-center gap-2">
+                      <Link href={`/articles/${article.slug}`} target="_blank" className="flex items-center gap-2 cursor-pointer">
                         <ExternalLink className="h-3.5 w-3.5" />
                         Ver
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/articles/${article._id}/edit`} className="flex items-center gap-2">
+                      <Link href={`/dashboard/articles/${article._id}/edit`} className="flex items-center gap-2 cursor-pointer">
                         <Pencil className="h-3.5 w-3.5" />
                         Editar
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <AlertDialogTrigger asChild>
-                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/40 flex items-center gap-2">
-                             <Trash2 className="h-3.5 w-3.5" />
-                            Eliminar
-                        </DropdownMenuItem>
-                    </AlertDialogTrigger>
+                    <DropdownMenuItem
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setOpen(true);
+                      }}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/40 flex items-center gap-2 cursor-pointer"
+                    >
+                         <Trash2 className="h-3.5 w-3.5" />
+                        Eliminar
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                <AlertDialogTitle>¿Eliminar artículo?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Esta acción no se puede deshacer. El artículo será eliminado permanentemente.
-                </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Sí, eliminar
-                </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+
+            <AlertDialog open={open} onOpenChange={setOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar artículo?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Esta acción no se puede deshacer. El artículo &quot;{article.title}&quot; será eliminado permanentemente.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDelete();
+                      }}
+                      disabled={isDeleting}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                        {isDeleting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Eliminando...
+                          </>
+                        ) : (
+                          "Sí, eliminar"
+                        )}
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     )
 }
 
-
-export const columns: ColumnDef<ArticleForTable>[] = [
+export const getColumns = (onDeleted?: (id: string) => void): ColumnDef<ArticleForTable>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => {
@@ -162,9 +195,11 @@ export const columns: ColumnDef<ArticleForTable>[] = [
       const article = row.original
       return (
         <div className="text-right">
-           <CellActions article={article} />
+           <CellActions article={article} onDeleted={onDeleted} />
         </div>
       )
     },
   },
 ]
+
+export const columns = getColumns();

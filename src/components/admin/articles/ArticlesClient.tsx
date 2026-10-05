@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { Article, Category } from "@/lib/types";
 import { DataTable } from "./data-table";
-import { columns } from "./columns";
+import { getColumns } from "./columns";
 import {
   Select,
   SelectContent,
@@ -19,24 +19,35 @@ interface ArticlesClientProps {
 }
 
 export function ArticlesClient({ initialArticles, categories }: ArticlesClientProps) {
+  const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [filterText, setFilterText] = useState("");
 
+  useEffect(() => {
+    setArticles(initialArticles);
+  }, [initialArticles]);
+
+  const handleDeleteArticle = (id: string) => {
+    setArticles((prev) => prev.filter((a) => a._id !== id));
+  };
+
+  const columns = useMemo(() => getColumns(handleDeleteArticle), []);
+
   const filteredArticles = useMemo(() => {
-    let articles = initialArticles;
+    let list = articles;
 
     if (selectedCategory !== "all") {
-      articles = articles.filter(article => article.categoryId === selectedCategory);
+      list = list.filter(article => article.categoryId === selectedCategory);
     }
 
     if (filterText) {
-      articles = articles.filter(article =>
+      list = list.filter(article =>
         article.title.toLowerCase().includes(filterText.toLowerCase())
       );
     }
 
-    return articles;
-  }, [initialArticles, selectedCategory, filterText]);
+    return list;
+  }, [articles, selectedCategory, filterText]);
 
   return (
     <div className="space-y-4">

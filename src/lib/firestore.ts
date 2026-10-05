@@ -336,9 +336,24 @@ export async function getAllArticles(): Promise<Article[]> {
       const defaultMatch = defaultArticles.find(def => def._id === d.id);
       return serializeFirestoreDoc({ ...(defaultMatch || {}), ...data, _id: d.id }) as Article;
     });
-    const dbArticleIds = new Set(articles.map(a => a._id));
-    const remainingDefaults = defaultArticles.filter(a => !dbArticleIds.has(a._id));
-    return [...articles, ...remainingDefaults].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+
+    let deletedIds: string[] = [];
+    try {
+      const deletedRef = doc(db, 'settings', 'deleted_articles');
+      const snap = await withTimeout(getDoc(deletedRef), 1000);
+      if (snap.exists()) {
+        deletedIds = snap.data().ids || [];
+      }
+    } catch {
+      // ignore timeout/error
+    }
+
+    const deletedSet = new Set(deletedIds);
+    const filteredArticles = articles.filter(a => !deletedSet.has(a._id));
+    const dbArticleIds = new Set(filteredArticles.map(a => a._id));
+    const remainingDefaults = defaultArticles.filter(a => !dbArticleIds.has(a._id) && !deletedSet.has(a._id));
+
+    return [...filteredArticles, ...remainingDefaults].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching all articles:", error);
     return defaultArticles;
@@ -510,11 +525,24 @@ export async function updateArticle(articleId: string, articleData: Partial<Arti
 
 export async function deleteArticle(articleId: string): Promise<void> {
   if (isIsolatedMode) {
-    console.warn("[Seguridad] EliminaciÃ³n de artÃ­culo bloqueada en modo aislado.");
+    console.warn("[Seguridad] Eliminación de artículo bloqueada en modo aislado.");
     return;
   }
   const articleRef = doc(db, 'articles', articleId);
   await deleteDoc(articleRef);
+
+  // Track deleted IDs so mock/default articles are permanently excluded
+  try {
+    const deletedRef = doc(db, 'settings', 'deleted_articles');
+    const snap = await withTimeout(getDoc(deletedRef), 1500);
+    const list: string[] = snap.exists() ? (snap.data().ids || []) : [];
+    if (!list.includes(articleId)) {
+      list.push(articleId);
+      await setDoc(deletedRef, { ids: list }, { merge: true });
+    }
+  } catch (err) {
+    console.warn("[deleteArticle] Notice: could not update deleted_articles tracker:", err);
+  }
 }
 
 export async function uploadImage(file: File): Promise<string> {
