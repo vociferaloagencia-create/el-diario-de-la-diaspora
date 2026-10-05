@@ -131,13 +131,54 @@ export async function createAccount(email: string, password: string): Promise<st
   }
 }
 
-export async function signIn(email: string, password: string): Promise<User> {
-  clearAuthCookies();
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('mock_user_session');
-  }
 
-  const isExplicitAdmin = email.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+export function isSuperAdminEmail(email?: string | null): boolean {
+  if (!email) return false;
+  const lower = email.toLowerCase().trim();
+  return (
+    lower === 'admin@eldiariodeladiaspora.com' ||
+    lower === 'eldiariodiaspora@eldiariodeladiaspora.com' ||
+    lower === 'sharleen@eldiariodeladiaspora.com' ||
+    lower === 'cliente@eldiariodeladiaspora.com'
+  );
+}
+
+export async function resolveLoginIdentifier(identifier: string): Promise<string> {
+  const clean = identifier.trim().toLowerCase();
+  if (clean.includes('@')) {
+    return clean;
+  }
+  if (clean === 'eldiariodeladiasporanews' || clean === 'eldiariodiaspora' || clean === 'cliente') {
+    return 'eldiariodiaspora@eldiariodeladiaspora.com';
+  }
+  if (clean === 'admin' || clean === 'superadmin' || clean === 'director') {
+    return 'admin@eldiariodeladiaspora.com';
+  }
+  if (clean === 'sharleen') {
+    return 'sharleen@eldiariodeladiaspora.com';
+  }
+  try {
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('username', '==', clean), limit(1));
+    const snap = await withTimeout(getDocs(q), 1800);
+    if (!snap.empty) {
+      const data = snap.docs[0].data();
+      if (data.email) return data.email;
+    }
+  } catch (err) {
+    console.warn('[Autenticación] Búsqueda de username omitida:', err);
+  }
+  return `${clean}@eldiariodeladiaspora.com`;
+}
+
+export async function signIn(identifier: string, password: string): Promise<User> {
+  clearAuthCookies();
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("mock_user_session");
+  }
+  const email = await resolveLoginIdentifier(identifier);
+
+  const isExplicitAdmin = isSuperAdminEmail(email);
   const assignedRole: AppUser['role'] = isExplicitAdmin ? 'superadmin' : 'user';
 
   if (isIsolatedMode) {
@@ -198,7 +239,7 @@ export async function signUp(name: string, email: string, password: string): Pro
     localStorage.removeItem('mock_user_session');
   }
 
-  const isExplicitAdmin = email.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+  const isExplicitAdmin = isSuperAdminEmail(email);
   const assignedRole: AppUser['role'] = isExplicitAdmin ? 'superadmin' : 'user';
 
   try {
@@ -239,7 +280,7 @@ export async function signInWithGoogle(): Promise<User> {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
 
-    const isExplicitAdmin = user.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+    const isExplicitAdmin = isSuperAdminEmail(user.email);
     let assignedRole: AppUser['role'] = isExplicitAdmin ? 'superadmin' : 'user';
 
     // Ensure user profile in Firestore (non-blocking attempt with 1800ms timeout)
@@ -319,7 +360,7 @@ export function onAuthUserChanged(
 
   const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
     if (authUser) {
-      const isExplicitAdmin = authUser.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+      const isExplicitAdmin = isSuperAdminEmail(authUser.email);
       const fallbackProfile: AppUser = {
         uid: authUser.uid,
         email: authUser.email || '',
@@ -354,7 +395,7 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
   }
 
   const currentFirebaseUser = auth.currentUser;
-  const isExplicitAdmin = currentFirebaseUser?.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+  const isExplicitAdmin = isSuperAdminEmail(currentFirebaseUser?.email);
   const fallbackProfile: AppUser = {
     uid,
     email: currentFirebaseUser?.email || '',
@@ -370,7 +411,7 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
 
     if (docSnap.exists()) {
       const data = docSnap.data();
-      const effectiveRole = data.role || (data.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com' ? 'superadmin' : 'user');
+      const effectiveRole = data.role || (isSuperAdminEmail(data.email) ? 'superadmin' : 'user');
       return {
           uid,
           email: data.email || '',

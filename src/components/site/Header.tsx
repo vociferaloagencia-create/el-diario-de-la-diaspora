@@ -286,31 +286,24 @@ export function Header({ settings, categories }: HeaderProps) {
                 </div>
               </div>
 
-              {/* Pie del MenÃº Lateral */}
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+              {/* Pie del Menú Lateral */}
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-2">
+                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-wider py-2.5 shadow-sm">
+                  <Link href="/submit" onClick={() => setIsSheetOpen(false)}>
+                    SUSCRÍBETE AL PERIÓDICO
+                  </Link>
+                </Button>
                 <Button 
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     handleToggleNotifications();
                     setIsSheetOpen(false);
                   }}
-                  className={`w-full ${
-                    notificationState === 'granted'
-                      ? 'bg-emerald-600 hover:bg-emerald-700'
-                      : 'bg-primary hover:bg-primary/90'
-                  } text-white font-bold text-xs uppercase tracking-wider py-2.5 gap-2`}
+                  className="w-full font-semibold text-xs py-2 gap-2 border-slate-200 dark:border-slate-800"
                 >
-                  {notificationState === 'granted' ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Notificaciones Activas</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bell className="w-4 h-4" />
-                      <span>Activar Notificaciones</span>
-                    </>
-                  )}
+                  <Bell className="w-4 h-4 text-primary" />
+                  <span>{notificationState === 'granted' ? 'Notificaciones Activas' : 'Activar Notificaciones Web'}</span>
                 </Button>
               </div>
             </SheetContent>
@@ -378,25 +371,17 @@ export function Header({ settings, categories }: HeaderProps) {
             <Button 
               type="button" 
               onClick={handleToggleNotifications}
-              variant="default" 
+              variant="outline" 
               size="sm" 
-              className={`hidden sm:flex ${
-                notificationState === 'granted'
-                  ? 'bg-emerald-600 hover:bg-emerald-700'
-                  : 'bg-primary hover:bg-primary/90'
-              } text-white font-bold rounded-full px-4 shadow-sm hover:shadow transition-all gap-1.5`}
+              className="hidden md:flex rounded-full px-3 h-9 gap-1.5 border-slate-200 dark:border-slate-800 text-xs font-semibold hover:border-primary/50 transition-all shadow-xs"
+              title={notificationState === 'granted' ? 'Notificaciones web activadas' : 'Activar notificaciones web'}
             >
-              {notificationState === 'granted' ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>NOTIFICACIONES ACTIVAS</span>
-                </>
-              ) : (
-                <>
-                  <Bell className="w-3.5 h-3.5" />
-                  <span>NOTIFICACIONES</span>
-                </>
-              )}
+              <Bell className={`w-3.5 h-3.5 ${notificationState === 'granted' ? 'text-emerald-500 fill-emerald-500' : 'text-slate-600 dark:text-slate-300'}`} />
+              <span className="hidden lg:inline">{notificationState === 'granted' ? 'Alertas Activas' : 'Notificaciones'}</span>
+            </Button>
+
+            <Button asChild variant="default" size="sm" className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-bold rounded-full px-5 shadow-sm hover:shadow transition-all">
+              <Link href="/submit">SUSCRÍBETE</Link>
             </Button>
             
             <AuthArea context="header" />

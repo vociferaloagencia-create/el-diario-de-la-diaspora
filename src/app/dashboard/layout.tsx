@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
+import { isSuperAdminEmail } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
@@ -99,7 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
 
-  const isExplicitSuperAdmin = authUser?.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+  const isExplicitSuperAdmin = isSuperAdminEmail(authUser?.email);
   const cookieRole = typeof document !== 'undefined'
     ? document.cookie.split('; ').find(row => row.startsWith('userRole='))?.split('=')[1]
     : undefined;

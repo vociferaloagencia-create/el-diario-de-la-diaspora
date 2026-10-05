@@ -21,6 +21,7 @@ type WithSerialization<T> = Omit<T, keyof FirestoreDoc> & SerializedDoc;
 export interface AppUser {
   uid: string;
   email: string;
+  username?: string;
   role: 'superadmin' | 'admin' | 'editor' | 'user';
   photoUrl?: string;
   name?: string;

@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn, signUp, signInWithGoogle } from '@/lib/auth';
+import { signIn, signUp, signInWithGoogle, isSuperAdminEmail } from '@/lib/auth';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
@@ -19,7 +19,7 @@ import { Loader2, UserPlus, LogIn, Sparkles } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/password-input';
 
 const loginSchema = z.object({
-  email: z.string().email('Correo electrónico inválido.'),
+  email: z.string().min(1, 'Ingresa tu usuario o correo electrónico.'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
   rememberMe: z.boolean().optional(),
 });
@@ -45,7 +45,7 @@ function LoginContent() {
 
   useEffect(() => {
     if (!loading && authUser) {
-      const isExplicitAdmin = authUser.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+      const isExplicitAdmin = isSuperAdminEmail(authUser.email);
       const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'editor' || isExplicitAdmin;
       const defaultTarget = isAdmin ? '/dashboard' : '/dashboard/profile';
       const target = searchParams.get('redirect') || defaultTarget;
@@ -86,7 +86,7 @@ function LoginContent() {
         title: 'Acceso con Google Exitoso',
         description: `¡Bienvenido ${user.displayName || 'Usuario'}!`,
       });
-      const isExplicitAdmin = user.email?.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+      const isExplicitAdmin = isSuperAdminEmail(user.email);
       const defaultTarget = isExplicitAdmin ? '/dashboard' : '/dashboard/profile';
       const redirectUrl = searchParams.get('redirect') || defaultTarget;
       window.location.href = redirectUrl;
@@ -116,7 +116,7 @@ function LoginContent() {
         title: 'Inicio de Sesión Exitoso',
         description: "¡Bienvenido de vuelta!",
       });
-      const isExplicitAdmin = values.email.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+      const isExplicitAdmin = isSuperAdminEmail(values.email);
       const redirectUrl = searchParams.get('redirect') || (isExplicitAdmin ? '/dashboard' : '/dashboard/profile');
       window.location.href = redirectUrl;
     } catch (error: any) {
@@ -151,7 +151,7 @@ function LoginContent() {
         title: '¡Cuenta Creada Exitosamente!',
         description: `¡Bienvenido ${values.name}! Tu cuenta de lector ha sido creada.`,
       });
-      const isExplicitAdmin = values.email.toLowerCase() === 'admin@eldiariodeladiaspora.com';
+      const isExplicitAdmin = isSuperAdminEmail(values.email);
       const redirectUrl = searchParams.get('redirect') || (isExplicitAdmin ? '/dashboard' : '/dashboard/profile');
       window.location.href = redirectUrl;
     } catch (error: any) {
@@ -187,9 +187,9 @@ function LoginContent() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Correo Electrónico</FormLabel>
+                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Nombre de Usuario o Correo Electrónico</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="tu@email.com" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
+                        <Input type="text" placeholder="eldiariodeladiasporanews o tu@email.com" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
