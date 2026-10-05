@@ -33,7 +33,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 
-export type UserForTable = Pick<AppUser, 'uid' | 'email' | 'role' | 'createdAt'>;
+export type UserForTable = Pick<AppUser, 'uid' | 'email' | 'name' | 'username' | 'role' | 'createdAt'>;
 
 const CellActions = ({ user }: { user: UserForTable }) => {
     const { toast } = useToast();
@@ -146,6 +146,15 @@ const CellActions = ({ user }: { user: UserForTable }) => {
 }
 
 export const columns: ColumnDef<UserForTable>[] = [
+  {
+    accessorKey: "username",
+    header: "Usuario",
+    cell: ({ row }) => {
+      const username = row.original.username;
+      if (!username) return <span className="text-xs text-muted-foreground italic">Sin asignar</span>;
+      return <span className="font-mono text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-0.5 rounded border">{username}</span>;
+    }
+  },
   {
     accessorKey: "email",
     header: ({ column }) => {

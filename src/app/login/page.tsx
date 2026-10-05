@@ -26,6 +26,7 @@ const loginSchema = z.object({
 
 const signUpSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres.'),
+  username: z.string().min(3, 'El usuario debe tener al menos 3 caracteres.').regex(/^[a-zA-Z0-9_.-]+$/, 'Solo letras, números, guiones y puntos.').optional().or(z.literal('')),
   email: z.string().email('Correo electrónico inválido.'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
   confirmPassword: z.string()
@@ -72,6 +73,7 @@ function LoginContent() {
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       name: '',
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -146,7 +148,7 @@ function LoginContent() {
   async function onSignUpSubmit(values: z.infer<typeof signUpSchema>) {
     setIsSubmitting(true);
     try {
-      await signUp(values.name, values.email, values.password);
+      await signUp(values.name, values.email, values.password, values.username || undefined);
       toast({
         title: '¡Cuenta Creada Exitosamente!',
         description: `¡Bienvenido ${values.name}! Tu cuenta de lector ha sido creada.`,
@@ -187,7 +189,7 @@ function LoginContent() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Nombre de Usuario o Correo Electrónico</FormLabel>
+                      <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre de usuario o correo electrónico</FormLabel>
                       <FormControl>
                         <Input type="text" placeholder="eldiariodeladiasporanews o tu@email.com" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
                       </FormControl>
@@ -245,9 +247,22 @@ function LoginContent() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Nombre Completo</FormLabel>
+                      <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre Completo</FormLabel>
                       <FormControl>
                         <Input placeholder="Juan Pérez" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={signUpForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre de usuario (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ej. carlos_diaspora" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

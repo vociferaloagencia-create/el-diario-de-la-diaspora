@@ -105,7 +105,13 @@ function getStoredMockSession(): { user: User; profile: AppUser } | null {
 }
 
 // This function should now only be called from an admin context
-export async function createAccount(email: string, password: string): Promise<string> {
+export async function createAccount(
+  email: string, 
+  password: string, 
+  username?: string, 
+  role: AppUser['role'] = 'editor',
+  name?: string
+): Promise<string> {
   if (isIsolatedMode) {
     console.warn("[Seguridad] Creación de cuenta en modo aislado simulada localmente.");
     return "mock-user-uid";
@@ -119,7 +125,9 @@ export async function createAccount(email: string, password: string): Promise<st
     await withTimeout(setDoc(userRef, {
         uid: user.uid,
         email: user.email,
-        role: 'editor', // Default role for admin-created team members
+        name: name || null,
+        username: username ? username.trim().toLowerCase() : null,
+        role: role || 'editor',
         createdAt: serverTimestamp(),
     }), 1800);
     
@@ -233,7 +241,7 @@ export async function signIn(identifier: string, password: string): Promise<User
   }
 }
 
-export async function signUp(name: string, email: string, password: string): Promise<User> {
+export async function signUp(name: string, email: string, password: string, username?: string): Promise<User> {
   clearAuthCookies();
   if (typeof window !== 'undefined') {
     localStorage.removeItem('mock_user_session');
@@ -253,6 +261,7 @@ export async function signUp(name: string, email: string, password: string): Pro
         uid: user.uid,
         email: user.email,
         name: name,
+        username: username ? username.trim().toLowerCase() : null,
         role: assignedRole,
         createdAt: serverTimestamp(),
       }), 1800);
@@ -415,6 +424,7 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
       return {
           uid,
           email: data.email || '',
+          username: data.username || undefined,
           role: effectiveRole,
           photoUrl: data.photoUrl || '',
           name: data.name || '',
@@ -453,6 +463,8 @@ export async function getAllUsers(): Promise<AppUser[]> {
         return {
             uid: doc.id,
             email: data.email,
+            name: data.name || '',
+            username: data.username || undefined,
             role: data.role,
             createdAt: createdAt instanceof Timestamp 
                 ? createdAt.toDate().toISOString() 

@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
+  name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }).optional().or(z.literal("")),
+  username: z.string().min(3, { message: "El usuario debe tener al menos 3 caracteres." }).regex(/^[a-zA-Z0-9_.-]+$/, { message: "Solo letras, números, guiones y puntos." }).optional().or(z.literal("")),
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
   role: z.enum(["admin", "editor"]).default("editor"),
@@ -45,6 +47,8 @@ export function AddUserForm({ onUserAdded }: AddUserFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
+      username: "",
       email: "",
       password: "",
       role: "editor",
@@ -54,11 +58,19 @@ export function AddUserForm({ onUserAdded }: AddUserFormProps) {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      const newUserId = await createAccount(values.email, values.password);
+      const newUserId = await createAccount(
+        values.email,
+        values.password,
+        values.username || undefined,
+        values.role,
+        values.name || undefined
+      );
 
       const newUser: AppUser = {
         uid: newUserId,
         email: values.email,
+        name: values.name || undefined,
+        username: values.username ? values.username.trim().toLowerCase() : undefined,
         role: values.role,
         createdAt: new Date().toISOString(),
       };
@@ -90,6 +102,40 @@ export function AddUserForm({ onUserAdded }: AddUserFormProps) {
           <Info className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
           <span>El usuario recibirá un correo de invitación. Debe cambiar la contraseña en el primer inicio de sesión.</span>
         </div>
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Nombre completo</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Ej. Carlos Santana" className="pl-9" {...field} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Nombre de usuario (Opcional)</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Ej. redactor_noticias" className="pl-9" {...field} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

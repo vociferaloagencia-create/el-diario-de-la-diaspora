@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { sendPasswordResetEmail } from '@/lib/auth';
+import { sendPasswordResetEmail, resolveLoginIdentifier } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
-  email: z.string().email('Dirección de correo electrónico inválida.'),
+  identifier: z.string().min(1, 'Ingresa tu nombre de usuario o correo electrónico.'),
 });
 
 export default function ForgotPasswordPage() {
@@ -23,17 +23,18 @@ export default function ForgotPasswordPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      identifier: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      await sendPasswordResetEmail(values.email);
+      const email = await resolveLoginIdentifier(values.identifier);
+      await sendPasswordResetEmail(email);
       toast({
         title: 'Correo de Restablecimiento Enviado',
-        description: 'Revisa tu bandeja de entrada para restablecer tu contraseña.',
+        description: `Si la cuenta existe, se ha enviado el enlace de restablecimiento a ${email}.`,
       });
     } catch (error: any) {
       console.error(error);
@@ -52,19 +53,19 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold font-headline">¿Olvidaste tu Contraseña?</CardTitle>
-          <CardDescription>Ingresa tu correo para recibir un enlace de restablecimiento</CardDescription>
+          <CardDescription>Ingresa tu nombre de usuario o correo electrónico para recibir un enlace de restablecimiento</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="identifier"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Correo Electrónico</FormLabel>
+                    <FormLabel className="text-sm font-medium">Nombre de usuario o correo electrónico</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="tu@ejemplo.com" {...field} />
+                      <Input placeholder="usuario o tu@ejemplo.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
