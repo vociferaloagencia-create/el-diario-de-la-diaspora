@@ -5,7 +5,7 @@ import { isSuperAdminEmail } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { Newspaper, Settings, BarChart3, Users, Globe, LayoutGrid, Palette, Share2, Home, FileText, Megaphone, ArrowDownToLine, Menu, LayoutDashboard, Flame } from 'lucide-react';
+import { Newspaper, Settings, BarChart3, Users, Globe, LayoutGrid, Palette, Share2, Home, FileText, Megaphone, ArrowDownToLine, Menu, LayoutDashboard, Flame, MailCheck } from 'lucide-react';
 import { Sidebar, SidebarProvider, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { DashboardHeader } from '@/components/admin/DashboardHeader';
 import { Loader2 } from "lucide-react";
@@ -254,6 +254,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <Link href="/dashboard/users">
                                         <Users />
                                         Usuarios
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/subscribers')} className={pathname.startsWith('/dashboard/subscribers') ? 'bg-primary/10 text-primary font-bold' : ''}>
+                                    <Link href="/dashboard/subscribers">
+                                        <MailCheck />
+                                        Suscriptores
                                     </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>

@@ -29,6 +29,15 @@ export interface AppUser {
 }
 
 
+export interface Subscriber {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  subscribedAt?: any;
+  source?: string;
+}
+
 // --- SITE SETTINGS ---
 
 export interface BrandingSettings {
