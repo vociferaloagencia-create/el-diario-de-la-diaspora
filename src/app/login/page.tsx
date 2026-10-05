@@ -191,7 +191,7 @@ function LoginContent() {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre de usuario o correo electrónico</FormLabel>
                       <FormControl>
-                        <Input type="text" placeholder="eldiariodeladiasporanews o tu@email.com" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
+                        <Input type="text" placeholder="usuario o correo@ejemplo.com" {...field} className="h-11 text-sm bg-slate-50 dark:bg-slate-900/50" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
