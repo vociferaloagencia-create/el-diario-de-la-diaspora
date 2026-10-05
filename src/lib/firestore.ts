@@ -21,7 +21,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import type { Article, Author, Category, Homepage, SiteSettings, AdClick, Reel } from './types';
-import { defaultArticles, defaultAuthors, defaultReels } from './mock-data';
+import { defaultAuthors, defaultReels } from './mock-data';
 
 
 // Helper function to convert snapshot to data with ID
@@ -313,85 +313,57 @@ export async function updateSiteSettings(values: Partial<SiteSettings>): Promise
 
 export async function getArticlesByIds(ids: string[]): Promise<Article[]> {
   if (isIsolatedMode || ids.length === 0) {
-    return ids.map(id => defaultArticles.find(article => article._id === id)).filter((a): a is Article => !!a);
+    return [];
   }
   try {
     const q = query(collection(db, 'articles'), where('__name__', 'in', ids));
     const querySnapshot = await withTimeout(getDocs(q), 2000);
     const articles = querySnapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    return ids.map(id => articles.find(article => article._id === id) || defaultArticles.find(article => article._id === id)).filter((a): a is Article => !!a);
+    return ids.map(id => articles.find(article => article._id === id)).filter((a): a is Article => !!a);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching articles by ids:", error);
-    return ids.map(id => defaultArticles.find(article => article._id === id)).filter((a): a is Article => !!a);
+    return [];
   }
 }
 
 export async function getAllArticles(): Promise<Article[]> {
-  if (isIsolatedMode) return defaultArticles;
+  if (isIsolatedMode) return [];
   try {
     const q = query(collection(db, "articles"), orderBy('publishedAt', 'desc'));
     const snapshot = await withTimeout(getDocs(q), 2000);
-    const articles = snapshot.docs.map(d => {
-      const data = d.data();
-      const defaultMatch = defaultArticles.find(def => def._id === d.id);
-      return serializeFirestoreDoc({ ...(defaultMatch || {}), ...data, _id: d.id }) as Article;
-    });
-
-    let deletedIds: string[] = [];
-    try {
-      const deletedRef = doc(db, 'settings', 'deleted_articles');
-      const snap = await withTimeout(getDoc(deletedRef), 1000);
-      if (snap.exists()) {
-        deletedIds = snap.data().ids || [];
-      }
-    } catch {
-      // ignore timeout/error
-    }
-
-    const deletedSet = new Set(deletedIds);
-    const filteredArticles = articles.filter(a => !deletedSet.has(a._id));
-    const dbArticleIds = new Set(filteredArticles.map(a => a._id));
-    const remainingDefaults = defaultArticles.filter(a => !dbArticleIds.has(a._id) && !deletedSet.has(a._id));
-
-    return [...filteredArticles, ...remainingDefaults].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+    return articles;
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching all articles:", error);
-    return defaultArticles;
+    return [];
   }
 }
 
 export async function getHeroArticles(): Promise<Article[]> {
-  if (isIsolatedMode) {
-    return defaultArticles.filter(a => a.isMainHero || a.heroOrder === 1);
-  }
+  if (isIsolatedMode) return [];
   try {
     const q = query(collection(db, "articles"), where("isMainHero", "==", true));
     const snapshot = await withTimeout(getDocs(q), 2000);
-    const articles = snapshot.docs.map(d => {
-      const data = d.data();
-      const defaultMatch = defaultArticles.find(def => def._id === d.id);
-      return serializeFirestoreDoc({ ...(defaultMatch || {}), ...data, _id: d.id }) as Article;
-    });
+    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
     const filtered = articles
       .filter(a => a.status === 'published')
       .sort((a, b) => (a.heroOrder ?? 99) - (b.heroOrder ?? 99));
     if (filtered.length > 0) {
       return filtered;
     }
-    return defaultArticles.filter(a => a.isMainHero).sort((a, b) => (a.heroOrder ?? 99) - (b.heroOrder ?? 99));
+    const latestQ = query(collection(db, "articles"), orderBy('publishedAt', 'desc'), limit(1));
+    const latestSnap = await withTimeout(getDocs(latestQ), 2000);
+    return latestSnap.docs
+      .map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article)
+      .filter(a => a.status === 'published');
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching hero articles:", error);
-    return defaultArticles.filter(a => a.isMainHero);
+    return [];
   }
 }
 
 export async function getMostReadArticles(): Promise<Article[]> {
-  if (isIsolatedMode) {
-    return defaultArticles
-      .filter(a => a.showOnMostRead)
-      .sort((a, b) => (a.mostReadOrder || 99) - (b.mostReadOrder || 99))
-      .slice(0, 4);
-  }
+  if (isIsolatedMode) return [];
   try {
     const q = query(collection(db, "articles"), where("showOnMostRead", "==", true));
     const snapshot = await withTimeout(getDocs(q), 2000);
@@ -400,81 +372,62 @@ export async function getMostReadArticles(): Promise<Article[]> {
       .filter(a => a.status === 'published')
       .sort((a, b) => (a.mostReadOrder || 99) - (b.mostReadOrder || 99))
       .slice(0, 4);
-    const dbIds = new Set(filtered.map(a => a._id));
-    const remainingDefaults = defaultArticles.filter(a => a.showOnMostRead && !dbIds.has(a._id));
-    return [...filtered, ...remainingDefaults].slice(0, 4);
+    if (filtered.length > 0) {
+      return filtered;
+    }
+    return getLatestArticles(4);
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching most read articles:", error);
-    return defaultArticles.filter(a => a.showOnMostRead).slice(0, 4);
+    return [];
   }
 }
 
 export async function getLatestArticles(limitCount: number = 50): Promise<Article[]> {
-  if (isIsolatedMode) return defaultArticles.slice(0, limitCount);
+  if (isIsolatedMode) return [];
   try {
     const q = query(collection(db, "articles"), orderBy("publishedAt", "desc"), limit(limitCount));
     const snapshot = await withTimeout(getDocs(q), 2000);
     const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    const filtered = articles.filter(a => a.status === 'published');
-    const dbIds = new Set(filtered.map(a => a._id));
-    const remainingDefaults = defaultArticles.filter(a => !dbIds.has(a._id));
-    return [...filtered, ...remainingDefaults].slice(0, limitCount);
+    return articles.filter(a => a.status === 'published');
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching latest articles:", error);
-    return defaultArticles.slice(0, limitCount);
+    return [];
   }
 }
 
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
-  let list: Article[] = [];
-  if (!isIsolatedMode) {
-    try {
-      const q = query(
-        collection(db, "articles"),
-        where("categoryId", "==", categorySlug)
-      );
-      const snapshot = await withTimeout(getDocs(q), 2000);
-      const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-      list = articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    } catch (error) {
-      console.warn("[Firestore Safe] Error fetching articles by category:", error);
-    }
+  if (isIsolatedMode) return [];
+  try {
+    const q = query(
+      collection(db, "articles"),
+      where("categoryId", "==", categorySlug)
+    );
+    const snapshot = await withTimeout(getDocs(q), 2000);
+    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+    return articles
+      .filter(a => a.status === 'published')
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  } catch (error) {
+    console.warn("[Firestore Safe] Error fetching articles by category:", error);
+    return [];
   }
-
-  if (list.length === 0) {
-    list = defaultArticles.filter(a => a.categoryId === categorySlug);
-  }
-
-  if (list.length === 0) {
-    // If still empty, supply default articles so the page is always full and complete
-    list = defaultArticles.map((a, idx) => ({
-      ...a,
-      _id: `cat-art-${categorySlug}-${idx}`,
-      categoryId: categorySlug,
-    }));
-  }
-
-  return list;
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  if (isIsolatedMode) {
-    return defaultArticles.find(a => a.slug === slug) || defaultArticles[0] || null;
-  }
+  if (isIsolatedMode) return null;
   try {
     const q = query(collection(db, "articles"), where("slug", "==", slug), limit(1));
     const snapshot = await withTimeout(getDocs(q), 2000);
     if (snapshot.empty) {
-      return defaultArticles.find(a => a.slug === slug) || null;
+      return null;
     }
     const articleDoc = snapshot.docs[0];
     return serializeFirestoreDoc({ _id: articleDoc.id, ...articleDoc.data() }) as Article;
   } catch (error) {
     console.warn("[Firestore Safe] Error fetching article by slug:", error);
-    return defaultArticles.find(a => a.slug === slug) || null;
+    return null;
   }
 }
-
 
 export async function getAuthorById(id: string): Promise<Author | null> {
   return getDocument<Author>('authors', id);
