@@ -17,6 +17,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const [displayName, setDisplayName] = useState('');
+  const [authorRole, setAuthorRole] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -24,6 +25,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (userProfile) {
       setDisplayName(userProfile.name || '');
+      setAuthorRole(userProfile.authorRole || '');
       setPhotoUrl(userProfile.photoUrl || '');
     }
   }, [userProfile]);
@@ -52,6 +54,7 @@ export default function ProfilePage() {
     try {
       await updateUserProfileData(userProfile.uid, {
         name: displayName.trim(),
+        authorRole: authorRole.trim(),
         photoUrl: photoUrl.trim(),
       });
       toast({ title: "Perfil actualizado", description: "Tus datos se guardaron correctamente." });
@@ -156,6 +159,15 @@ export default function ProfilePage() {
                 placeholder="ej. Eustache Sanon o Tu Nombre"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">Cargo o Especialidad</label>
+              <Input
+                placeholder="ej. Internacionalista / Analista político, Redactor..."
+                value={authorRole}
+                onChange={(e) => setAuthorRole(e.target.value)}
               />
             </div>
 

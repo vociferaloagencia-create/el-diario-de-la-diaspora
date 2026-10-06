@@ -428,6 +428,7 @@ export async function getUserProfile(uid: string): Promise<AppUser | null> {
           role: effectiveRole,
           photoUrl: data.photoUrl || '',
           name: data.name || '',
+          authorRole: data.authorRole || '',
           createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : (data.createdAt || new Date().toISOString()),
       } as AppUser;
     }
@@ -485,7 +486,7 @@ export async function updateUserRole(uid: string, newRole: 'superadmin' | 'admin
   await withTimeout(updateDoc(userRef, { role: newRole }), 1800);
 }
 
-export async function updateUserProfileData(uid: string, data: { name?: string; photoUrl?: string }): Promise<void> {
+export async function updateUserProfileData(uid: string, data: { name?: string; photoUrl?: string; authorRole?: string }): Promise<void> {
   if (isIsolatedMode) return;
   const userRef = doc(db, 'users', uid);
   await withTimeout(setDoc(userRef, data, { merge: true }), 2500);

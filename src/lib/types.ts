@@ -25,6 +25,7 @@ export interface AppUser {
   role: 'superadmin' | 'admin' | 'editor' | 'user';
   photoUrl?: string;
   name?: string;
+  authorRole?: string;
   createdAt: Timestamp | string;
 }
 

@@ -134,7 +134,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         form.setValue('authorName', userProfile.name || 'Redacción El Diario de la Diáspora');
       }
       if (!form.getValues('authorRole')) {
-        form.setValue('authorRole', 'Redactor');
+        form.setValue('authorRole', userProfile.authorRole || 'Redactor');
       }
       if (!form.getValues('authorPhotoUrl') && userProfile.photoUrl) {
         form.setValue('authorPhotoUrl', userProfile.photoUrl);
