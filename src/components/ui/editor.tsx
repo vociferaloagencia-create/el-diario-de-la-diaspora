@@ -17,6 +17,7 @@ import {
   Trash2,
   Maximize2,
   Minimize2,
+  Move,
 } from 'lucide-react';
 import {
   useEditor,
@@ -33,12 +34,12 @@ import { Button } from './button';
 import { uploadImage } from '@/lib/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-// Componente interactivo para cada imagen con handles de arrastre y botones de borrado/alineación
+// Componente interactivo para cada imagen con 4 puntos de arrastre con ratón, drag & drop y envoltura de texto
 const ResizableImageComponent = ({ node, updateAttributes, deleteNode, selected }: any) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { src, alt, width = '100%', alignment = 'center' } = node.attrs;
 
-  const handlePointerDown = (e: React.PointerEvent) => {
+  const handlePointerDown = (corner: 'tl' | 'tr' | 'bl' | 'br') => (e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const startX = e.clientX;
@@ -47,7 +48,8 @@ const ResizableImageComponent = ({ node, updateAttributes, deleteNode, selected 
     const initialWidthPx = containerRef.current ? containerRef.current.clientWidth : parentWidth;
 
     const onPointerMove = (ev: PointerEvent) => {
-      const deltaX = ev.clientX - startX;
+      const rawDeltaX = ev.clientX - startX;
+      const deltaX = (corner === 'tr' || corner === 'br') ? rawDeltaX : -rawDeltaX;
       const newWidthPx = Math.max(120, Math.min(parentWidth, initialWidthPx + deltaX));
       const percentage = Math.round((newWidthPx / parentWidth) * 100);
       updateAttributes({ width: `${percentage}%` });
@@ -62,57 +64,89 @@ const ResizableImageComponent = ({ node, updateAttributes, deleteNode, selected 
     window.addEventListener('pointerup', onPointerUp);
   };
 
-  const alignClass =
-    alignment === 'left'
-      ? 'justify-start mr-auto'
-      : alignment === 'right'
-      ? 'justify-end ml-auto'
-      : 'justify-center mx-auto';
+  const isLeft = alignment === 'left';
+  const isRight = alignment === 'right';
+
+  const wrapperStyle: React.CSSProperties = {
+    float: isLeft ? 'left' : isRight ? 'right' : 'none',
+    margin: isLeft
+      ? '0.5rem 1.25rem 0.75rem 0'
+      : isRight
+      ? '0.5rem 0 0.75rem 1.25rem'
+      : '1.25rem auto',
+    clear: isLeft || isRight ? 'none' : 'both',
+    display: isLeft || isRight ? 'inline-block' : 'flex',
+    justifyContent: isLeft ? 'flex-start' : isRight ? 'flex-end' : 'center',
+    width: isLeft || isRight ? (width === '100%' ? '50%' : width) : (width || '100%'),
+    maxWidth: '100%',
+  };
 
   return (
-    <NodeViewWrapper className={`my-4 flex ${alignClass} w-full select-none`}>
+    <NodeViewWrapper
+      className="relative select-none my-2 transition-all"
+      style={wrapperStyle}
+    >
       <div
         ref={containerRef}
-        style={{ width: width || '100%', maxWidth: '100%' }}
+        style={{ width: '100%' }}
         className={`group relative rounded-xl transition-all border-2 ${
           selected
-            ? 'border-primary ring-2 ring-primary/20'
+            ? 'border-primary ring-2 ring-primary/20 shadow-md'
             : 'border-transparent hover:border-slate-300 dark:hover:border-slate-700'
         }`}
       >
+        {/* Imagen principal con arrastre directo del ratón */}
         <img
           src={src}
           alt={alt || ''}
-          className="w-full h-auto rounded-lg shadow-sm object-contain block pointer-events-none"
+          data-drag-handle
+          className="w-full h-auto rounded-lg shadow-sm object-contain block cursor-grab active:cursor-grabbing"
+          title="Haz clic y arrastra con el ratón para moverla en el texto"
         />
 
-        {/* Barra flotante sobre la foto con alineación y papelera */}
-        <div className="absolute -top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-slate-900/95 text-white px-2 py-1 rounded-lg shadow-xl z-30 text-xs backdrop-blur-sm pointer-events-auto">
+        {/* Barra flotante superior integrada dentro de la foto */}
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-slate-900/95 text-white px-2 py-1 rounded-lg shadow-xl z-30 text-xs backdrop-blur-sm pointer-events-auto">
+          {/* Manija con el mouse para reubicar la imagen */}
+          <div
+            data-drag-handle
+            className="p-1 rounded cursor-grab active:cursor-grabbing hover:bg-white/20 text-white flex items-center gap-1 font-medium select-none"
+            title="Arrastra con el ratón para reubicar en el texto"
+          >
+            <Move className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[10px] hidden sm:inline">Arrastrar</span>
+          </div>
+
+          <div className="h-3 w-px bg-white/30 mx-0.5" />
+
+          {/* Opciones de alineación / texto envolvente */}
           <button
             type="button"
-            onClick={() => updateAttributes({ alignment: 'left' })}
-            className={`p-1 rounded hover:bg-white/20 ${alignment === 'left' ? 'text-primary' : ''}`}
-            title="Alinear a la izquierda"
+            onClick={() => updateAttributes({ alignment: 'left', width: width === '100%' ? '50%' : width })}
+            className={`p-1 rounded hover:bg-white/20 ${alignment === 'left' ? 'text-primary font-bold' : ''}`}
+            title="Flotar a la izquierda (texto rodea a la derecha)"
           >
             <AlignLeft className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
             onClick={() => updateAttributes({ alignment: 'center' })}
-            className={`p-1 rounded hover:bg-white/20 ${alignment === 'center' ? 'text-primary' : ''}`}
-            title="Centrar imagen"
+            className={`p-1 rounded hover:bg-white/20 ${alignment === 'center' ? 'text-primary font-bold' : ''}`}
+            title="Centrado en bloque"
           >
             <AlignCenter className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => updateAttributes({ alignment: 'right' })}
-            className={`p-1 rounded hover:bg-white/20 ${alignment === 'right' ? 'text-primary' : ''}`}
-            title="Alinear a la derecha"
+            onClick={() => updateAttributes({ alignment: 'right', width: width === '100%' ? '50%' : width })}
+            className={`p-1 rounded hover:bg-white/20 ${alignment === 'right' ? 'text-primary font-bold' : ''}`}
+            title="Flotar a la derecha (texto rodea a la izquierda)"
           >
             <AlignRight className="w-3.5 h-3.5" />
           </button>
-          <div className="h-3 w-px bg-white/30 mx-1" />
+
+          <div className="h-3 w-px bg-white/30 mx-0.5" />
+
+          {/* Eliminar foto */}
           <button
             type="button"
             onClick={deleteNode}
@@ -124,34 +158,48 @@ const ResizableImageComponent = ({ node, updateAttributes, deleteNode, selected 
           </button>
         </div>
 
-        {/* Manija táctil / ratón en la esquina para arrastrar y redimensionar */}
+        {/* 4 Manijas interactivas en las 4 esquinas para arrastrar con el ratón */}
         <div
-          onPointerDown={handlePointerDown}
-          className="absolute -bottom-2.5 -right-2.5 w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-lg border-2 border-white opacity-0 group-hover:opacity-100 transition-all z-30 hover:scale-125"
-          title="Arrastra para agrandar o reducir el tamaño"
-        >
-          <div className="w-1.5 h-1.5 bg-white rounded-full" />
-        </div>
+          onPointerDown={handlePointerDown('tl')}
+          className="absolute -top-2.5 -left-2.5 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-md border-2 border-white opacity-0 group-hover:opacity-100 transition-all z-30 hover:scale-125"
+          title="Arrastra con el ratón para cambiar tamaño"
+        />
+        <div
+          onPointerDown={handlePointerDown('tr')}
+          className="absolute -top-2.5 -right-2.5 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center cursor-nesw-resize shadow-md border-2 border-white opacity-0 group-hover:opacity-100 transition-all z-30 hover:scale-125"
+          title="Arrastra con el ratón para cambiar tamaño"
+        />
+        <div
+          onPointerDown={handlePointerDown('bl')}
+          className="absolute -bottom-2.5 -left-2.5 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center cursor-nesw-resize shadow-md border-2 border-white opacity-0 group-hover:opacity-100 transition-all z-30 hover:scale-125"
+          title="Arrastra con el ratón para cambiar tamaño"
+        />
+        <div
+          onPointerDown={handlePointerDown('br')}
+          className="absolute -bottom-2.5 -right-2.5 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center cursor-nwse-resize shadow-md border-2 border-white opacity-0 group-hover:opacity-100 transition-all z-30 hover:scale-125"
+          title="Arrastra con el ratón para cambiar tamaño"
+        />
       </div>
     </NodeViewWrapper>
   );
 };
 
-// Extensión de imagen con atributos de tamaño y alineación persistentes
+// Extensión de imagen con atributos de tamaño, alineación y arrastre nativo
 const ResizableImage = ImageExtension.extend({
+  draggable: true,
   addAttributes() {
     return {
       ...this.parent?.(),
       width: {
         default: '100%',
         renderHTML: (attributes) => ({
-          style: `width: ${attributes.width || '100%'}; max-width: 100%; height: auto; display: block; margin: ${
+          style: `width: ${attributes.width || '100%'}; max-width: 100%; height: auto; ${
             attributes.alignment === 'left'
-              ? '1rem auto 1rem 0'
+              ? 'float: left; margin: 0.5rem 1.25rem 0.75rem 0;'
               : attributes.alignment === 'right'
-              ? '1rem 0 1rem auto'
-              : '1rem auto'
-          };`,
+              ? 'float: right; margin: 0.5rem 0 0.75rem 1.25rem;'
+              : 'display: block; margin: 1.25rem auto; clear: both;'
+          }`,
           'data-width': attributes.width,
           'data-alignment': attributes.alignment || 'center',
         }),

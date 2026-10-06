@@ -21,26 +21,9 @@ interface ArticleCommentsProps {
   articleSlug: string;
 }
 
-const DEFAULT_COMMENTS: Comment[] = [
-  {
-    id: "c-1",
-    author: "Carlos Méndez (Madrid)",
-    content: "Excelente cobertura sobre los acuerdos migratorios y de homologación de títulos. Como ingeniero en el exterior, esto nos beneficia enormemente.",
-    createdAt: "Hace 2 horas",
-    likes: 14,
-  },
-  {
-    id: "c-2",
-    author: "Elena Vasquez (Nueva York)",
-    content: "Muy importante mantener informada a la comunidad de la diáspora. El Diario de la Diáspora se está convirtiendo en el medio de referencia obligado.",
-    createdAt: "Hace 4 horas",
-    likes: 8,
-  },
-];
-
 export function ArticleComments({ articleSlug }: ArticleCommentsProps) {
   const { authUser, userProfile } = useAuth();
-  const [comments, setComments] = useState<Comment[]>(DEFAULT_COMMENTS);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const storageKey = `comments_${articleSlug}`;

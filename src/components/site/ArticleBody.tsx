@@ -17,7 +17,7 @@ export function ArticleBody({ content, inArticleAd, slug }: ArticleBodyProps) {
     if (!showAd) {
         return (
              <div 
-                className="prose prose-lg dark:prose-invert max-w-none [&_img]:max-h-[480px] [&_img]:w-auto [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-sm [&_img]:object-contain"
+                className="prose prose-lg dark:prose-invert max-w-none [&_img]:max-h-[600px] [&_img]:rounded-xl [&_img]:shadow-sm"
                 style={{ overflowWrap: 'break-word' }}
                 dangerouslySetInnerHTML={{ __html: content }}
             />
@@ -38,7 +38,7 @@ export function ArticleBody({ content, inArticleAd, slug }: ArticleBodyProps) {
     const contentPart2 = content.substring(insertPosition);
 
     return (
-        <div className="prose prose-lg dark:prose-invert max-w-none [&_img]:max-h-[480px] [&_img]:w-auto [&_img]:mx-auto [&_img]:rounded-xl [&_img]:shadow-sm [&_img]:object-contain" style={{ overflowWrap: 'break-word' }}>
+        <div className="prose prose-lg dark:prose-invert max-w-none [&_img]:max-h-[600px] [&_img]:rounded-xl [&_img]:shadow-sm" style={{ overflowWrap: 'break-word' }}>
             <div dangerouslySetInnerHTML={{ __html: contentPart1 }} />
             
             <div className="not-prose my-8 flex justify-center">
