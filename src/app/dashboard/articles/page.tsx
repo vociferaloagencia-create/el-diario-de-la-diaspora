@@ -16,7 +16,7 @@ export default async function ArticlesPage() {
   const stats = [
     { label: "Total artículos", value: articles.length, icon: Newspaper, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30" },
     { label: "Publicados", value: published.length, icon: FileCheck, color: "text-green-600 bg-green-100 dark:bg-green-900/30" },
-    { label: "Borradores", value: drafts.length, icon: FileEdit, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30" },
+    { label: "En edición", value: drafts.length, icon: FileEdit, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30" },
     { label: "Categorías", value: categories.length, icon: Newspaper, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30" },
   ];
 

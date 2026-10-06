@@ -26,7 +26,7 @@ interface DashboardClientProps {
 
 const quickActions = [
   { label: "Nuevo artículo", href: "/dashboard/articles/new", icon: PlusCircle, desc: "Crear una noticia", color: "from-blue-500 to-blue-600" },
-  { label: "Mis borradores", href: "/dashboard/articles", icon: FileEdit, desc: `${0} artículo(s) sin publicar`, color: "from-amber-500 to-amber-600" },
+  { label: "En edición (Drafts)", href: "/dashboard/articles", icon: FileEdit, desc: "Artículos sin publicar", color: "from-amber-500 to-amber-600" },
   { label: "Gestionar anuncios", href: "/dashboard/settings/ads", icon: Megaphone, desc: "Configurar publicidad", color: "from-purple-500 to-purple-600" },
   { label: "Ver estadísticas", href: "/dashboard/statistics", icon: BarChart3, desc: "Rendimiento del sitio", color: "from-emerald-500 to-emerald-600" },
 ];
@@ -36,7 +36,7 @@ export function DashboardClient({ stats, recentArticles, categories, siteSetting
 
   const statCards = [
     { label: "Publicados", value: stats.publishedArticles, icon: FileCheck, color: "text-green-600 bg-green-100 dark:bg-green-900/30", href: "/dashboard/articles" },
-    { label: "Borradores", value: stats.draftArticles, icon: FileEdit, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30", href: "/dashboard/articles" },
+    { label: "En edición", value: stats.draftArticles, icon: FileEdit, color: "text-amber-600 bg-amber-100 dark:bg-amber-900/30", href: "/dashboard/articles" },
     { label: "Categorías", value: stats.totalCategories, icon: LayoutGrid, color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30", href: "/dashboard/categories" },
     { label: "Clics", value: stats.totalAdClicks, icon: MousePointerClick, color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30", href: "/dashboard/statistics" },
     { label: "Destacados", value: stats.heroArticles, icon: Star, color: "text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30", href: "/dashboard/settings/homepage" },
@@ -152,7 +152,7 @@ export function DashboardClient({ stats, recentArticles, categories, siteSetting
               <div className="px-5 py-3.5 border-b bg-amber-50/50 dark:bg-amber-900/10">
                 <h2 className="font-semibold text-sm flex items-center gap-2 text-amber-700 dark:text-amber-400">
                   <FileEdit className="h-4 w-4" />
-                  Borradores pendientes
+                  Artículos en edición (No publicados)
                 </h2>
               </div>
               <div className="divide-y">
@@ -165,7 +165,7 @@ export function DashboardClient({ stats, recentArticles, categories, siteSetting
               </div>
               <div className="px-5 py-2 border-t bg-muted/10">
                 <Link href="/dashboard/articles" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1">
-                  Ver todos los borradores
+                  Ver todos los artículos en edición
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>

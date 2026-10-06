@@ -164,8 +164,19 @@ export const getColumns = (onDeleted?: (id: string) => void): ColumnDef<ArticleF
     header: "Estado",
     cell: ({ row }) => {
         const status = row.getValue("status") as string;
-        const variant = status === 'published' ? 'default' : 'secondary';
-        return <Badge variant={variant} className="capitalize text-xs px-2.5 py-0.5">{status}</Badge>
+        const isPublished = status === 'published';
+        return (
+          <Badge
+            variant={isPublished ? 'default' : 'secondary'}
+            className={`text-xs px-2.5 py-0.5 font-medium ${
+              isPublished
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+            }`}
+          >
+            {isPublished ? 'Publicado' : 'En edición (No publicado)'}
+          </Badge>
+        );
     }
   },
   {

@@ -7,7 +7,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X, User } from "lucide-react";
+import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X, User, Calendar } from "lucide-react";
 import { addArticle, updateArticle, uploadImage, uploadVideo, addCategory, getAllArticles } from "@/lib/firestore";
 import { revalidateHomepage } from "@/app/actions";
 import type { Category, Article } from "@/lib/types";
@@ -52,6 +52,7 @@ const formSchema = z.object({
   categoryId: z.string({ required_error: "Debes seleccionar una categoría." }),
   content: z.string().min(10, "El contenido debe tener al menos 10 caracteres."),
   status: z.enum(["draft", "published"]),
+  publishedAt: z.string().optional(),
   authorName: z.string().optional().or(z.literal('')),
   authorRole: z.string().optional().or(z.literal('')),
   authorPhotoUrl: z.string().optional().or(z.literal('')),
@@ -63,6 +64,29 @@ const formSchema = z.object({
 });
 
 type ArticleFormValues = z.infer<typeof formSchema>;
+
+const formatDatetimeForInput = (val: any): string => {
+  if (!val) {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  }
+  let date: Date;
+  if (val && typeof val.toDate === 'function') {
+    date = val.toDate();
+  } else if (val instanceof Date) {
+    date = val;
+  } else if (typeof val === 'number') {
+    date = new Date(val);
+  } else if (typeof val === 'string') {
+    date = new Date(val);
+  } else {
+    date = new Date();
+  }
+  if (isNaN(date.getTime())) date = new Date();
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+};
 
 interface ArticleFormProps {
   article: Partial<Article>;
@@ -117,6 +141,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
       categoryId: article.categoryId || '',
       content: article.content || '',
       status: article.status || 'draft',
+      publishedAt: formatDatetimeForInput(article.publishedAt),
       authorName: article.authorName || '',
       authorRole: article.authorRole || '',
       authorPhotoUrl: article.authorPhotoUrl || '',
@@ -256,7 +281,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         heroVideoUrl: values.heroVideoUrl || "",
         thumbnailUrl: values.heroImageUrl || "",
         status: values.status,
-        publishedAt: article.publishedAt || Timestamp.now(),
+        publishedAt: values.publishedAt ? Timestamp.fromDate(new Date(values.publishedAt)) : (article.publishedAt || Timestamp.now()),
         updatedAt: Timestamp.now(),
         createdAt: article.createdAt || Timestamp.now(),
         readingTimeMinutes: (() => {
@@ -374,14 +399,34 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
               <CardContent className="space-y-6">
                  <FormField control={form.control} name="status" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Estado</FormLabel>
+                      <FormLabel>Estado del artículo</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                         <SelectContent>
-                          <SelectItem value="draft">Borrador</SelectItem>
-                          <SelectItem value="published">Publicado</SelectItem>
+                          <SelectItem value="draft">En edición (No publicado / Guardado privado)</SelectItem>
+                          <SelectItem value="published">Publicado (Visible a todos los lectores)</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                )} />
+
+                <FormField control={form.control} name="publishedAt" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-1.5 font-semibold">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        Fecha y hora de publicación
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="datetime-local"
+                          {...field}
+                          className="w-full bg-background font-medium"
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs text-muted-foreground">
+                        Permite cambiar libremente el día y la hora de publicación de esta noticia.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                 )} />
