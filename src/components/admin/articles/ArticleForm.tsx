@@ -259,7 +259,11 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         publishedAt: article.publishedAt || Timestamp.now(),
         updatedAt: Timestamp.now(),
         createdAt: article.createdAt || Timestamp.now(),
-        readingTimeMinutes: Math.ceil(values.content.split(' ').length / 200),
+        readingTimeMinutes: (() => {
+          const cleanText = (contentWithParagraphs || values.content || "").replace(/<[^>]*>/g, " ").trim();
+          const words = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
+          return Math.max(1, Math.ceil(words / 200));
+        })(),
         tags: tags,
         allowComments: values.allowComments,
         isMainHero: values.isMainHero,

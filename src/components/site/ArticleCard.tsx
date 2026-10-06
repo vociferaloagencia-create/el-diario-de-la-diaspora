@@ -9,7 +9,25 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {
-  const journalistName = article.authorId || article.authorName || 'Redacción El Diario';
+  // Ocultar cualquier ID técnico o código criptográfico y mostrar el nombre real del autor
+  const isTechnicalId = (val?: string) => !val || (val.length > 20 && !val.includes(' '));
+  const journalistName = (!isTechnicalId(article.authorName) && article.authorName?.trim())
+    ? article.authorName.trim()
+    : 'Redacción El Diario';
+
+  // Cálculo de tiempo de lectura real basado en palabras limpias
+  const calculateReadingTime = () => {
+    if (article.content) {
+      const cleanText = article.content.replace(/<[^>]*>/g, ' ').trim();
+      const words = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
+      if (words > 0) {
+        return Math.max(1, Math.ceil(words / 200));
+      }
+    }
+    return article.readingTimeMinutes || 2;
+  };
+
+  const readingTime = calculateReadingTime();
 
   return (
     <a href={`/articles/${article.slug}`} className="flex flex-col gap-3 group rounded-xl">
@@ -47,12 +65,10 @@ export function ArticleCard({ article }: ArticleCardProps) {
             <User className="h-3 w-3 text-primary shrink-0" />
             Periodista: <span className="font-semibold text-slate-900 dark:text-white">{journalistName}</span>
           </span>
-          {article.readingTimeMinutes && (
-            <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium shrink-0">
-              <Clock className="h-3 w-3" />
-              {article.readingTimeMinutes} min
-            </span>
-          )}
+          <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium shrink-0">
+            <Clock className="h-3 w-3" />
+            {readingTime} min
+          </span>
         </div>
       </div>
     </a>

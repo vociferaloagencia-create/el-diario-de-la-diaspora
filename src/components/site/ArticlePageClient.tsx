@@ -34,7 +34,10 @@ export function ArticlePageClient({ article, author, settings, category, related
   
   const canEdit = userProfile && ['superadmin', 'admin', 'editor'].includes(userProfile.role);
 
-  const authorDisplayName = article.authorName || author?.name || 'Redacción El Diario de la Diáspora';
+  const isTechnicalId = (val?: string) => !val || (val.length > 20 && !val.includes(' '));
+  const authorDisplayName = (!isTechnicalId(article.authorName) && article.authorName?.trim())
+    || (!isTechnicalId(author?.name) && author?.name?.trim())
+    || 'Redacción El Diario de la Diáspora';
   const authorDisplayRole = article.authorRole || author?.role || 'Redactor';
   const authorDisplayAvatar = article.authorPhotoUrl || author?.avatarUrl || null;
 
@@ -174,7 +177,11 @@ export function ArticlePageClient({ article, author, settings, category, related
 
                           <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
                             <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            {article.readingTimeMinutes || 4} min
+                            {(() => {
+                              const cleanText = (article.content || "").replace(/<[^>]*>/g, " ").trim();
+                              const words = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
+                              return words > 0 ? Math.max(1, Math.ceil(words / 200)) : (article.readingTimeMinutes || 2);
+                            })()} min de lectura
                           </span>
                         </div>
                       </div>
