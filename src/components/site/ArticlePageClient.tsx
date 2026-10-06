@@ -34,6 +34,38 @@ export function ArticlePageClient({ article, author, settings, category, related
   
   const canEdit = userProfile && ['superadmin', 'admin', 'editor'].includes(userProfile.role);
 
+  const authorDisplayName = article.authorName || author?.name || 'Redacción El Diario de la Diáspora';
+  const authorDisplayRole = article.authorRole || author?.role || 'Redactor';
+  const authorDisplayAvatar = article.authorPhotoUrl || author?.avatarUrl || null;
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareData = {
+      title: article.title,
+      text: article.summary || article.title,
+      url: shareUrl,
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.warn("navigator.share falló, probando portapapeles:", err);
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({ title: "Enlace Copiado", description: "Se ha copiado el enlace de la noticia al portapapeles." });
+      } catch (clipboardErr) {
+        console.error("Error al copiar enlace:", clipboardErr);
+      }
+    }
+  };
+
   const handleAdClick = async (adName: string, adUrl: string) => {
     await trackAdClick(adName, article.slug, adUrl);
   };
@@ -71,10 +103,10 @@ export function ArticlePageClient({ article, author, settings, category, related
                         {/* Perfil del Periodista con Avatar Circular, Nombre y Rol */}
                         <div className="flex items-center gap-3.5">
                           <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-primary/30 shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold text-lg shadow-sm">
-                            {author?.avatarUrl ? (
+                            {authorDisplayAvatar ? (
                               <Image
-                                src={author.avatarUrl}
-                                alt={author.name}
+                                src={authorDisplayAvatar}
+                                alt={authorDisplayName}
                                 fill
                                 className="object-cover"
                               />
@@ -84,9 +116,9 @@ export function ArticlePageClient({ article, author, settings, category, related
                           </div>
                           <div className="flex flex-col">
                             <span className="font-extrabold text-sm text-slate-900 dark:text-white font-headline flex items-center gap-1.5">
-                              {author?.name || 'Redacción El Diario de la Diáspora'}
+                              {authorDisplayName}
                               <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">
-                                {author?.role || 'Redactor'}
+                                {authorDisplayRole}
                               </span>
                             </span>
                             <span className="text-xs text-slate-500 dark:text-slate-400 capitalize mt-0.5">
@@ -111,19 +143,14 @@ export function ArticlePageClient({ article, author, settings, category, related
                               <span className="hidden md:inline font-semibold">Imprimir</span>
                             </Button>
 
-                            {/* Botón Copiar Enlace */}
+                            {/* Botón Compartir Noticia */}
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                if (typeof navigator !== 'undefined') {
-                                  navigator.clipboard.writeText(window.location.href);
-                                  toast({ title: "Enlace Copiado", description: "Se ha copiado el enlace de la noticia al portapapeles." });
-                                }
-                              }}
+                              onClick={handleShare}
                               className="h-8 px-2.5 text-xs text-slate-600 dark:text-slate-300 hover:text-primary gap-1.5"
-                              title="Copiar enlace"
+                              title="Compartir noticia"
                             >
                               <Share2 className="w-3.5 h-3.5 text-primary" />
                               <span className="hidden md:inline font-semibold">Compartir</span>

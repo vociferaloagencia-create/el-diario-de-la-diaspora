@@ -484,3 +484,10 @@ export async function updateUserRole(uid: string, newRole: 'superadmin' | 'admin
   const userRef = doc(db, 'users', uid);
   await withTimeout(updateDoc(userRef, { role: newRole }), 1800);
 }
+
+export async function updateUserProfileData(uid: string, data: { name?: string; photoUrl?: string }): Promise<void> {
+  if (isIsolatedMode) return;
+  const userRef = doc(db, 'users', uid);
+  await withTimeout(setDoc(userRef, data, { merge: true }), 2500);
+}
+

@@ -216,6 +216,9 @@ export type Article = WithSerialization<{
   categoryId: string;
   subCategoryId: string | null;
   authorId: string;
+  authorName?: string;
+  authorRole?: string;
+  authorPhotoUrl?: string;
   heroImageUrl: string; imageCaption?: string;
   heroVideoUrl?: string;
   thumbnailUrl: string;

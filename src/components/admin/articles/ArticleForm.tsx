@@ -7,7 +7,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X } from "lucide-react";
+import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X, User } from "lucide-react";
 import { addArticle, updateArticle, uploadImage, uploadVideo, addCategory, getAllArticles } from "@/lib/firestore";
 import { revalidateHomepage } from "@/app/actions";
 import type { Category, Article } from "@/lib/types";
@@ -52,6 +52,9 @@ const formSchema = z.object({
   categoryId: z.string({ required_error: "Debes seleccionar una categoría." }),
   content: z.string().min(10, "El contenido debe tener al menos 10 caracteres."),
   status: z.enum(["draft", "published"]),
+  authorName: z.string().optional().or(z.literal('')),
+  authorRole: z.string().optional().or(z.literal('')),
+  authorPhotoUrl: z.string().optional().or(z.literal('')),
   heroImageUrl: z.string().optional().or(z.literal('')),
   imageCaption: z.string().optional().or(z.literal('')),
   heroVideoUrl: z.string().optional().or(z.literal('')),
@@ -114,6 +117,9 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
       categoryId: article.categoryId || '',
       content: article.content || '',
       status: article.status || 'draft',
+      authorName: article.authorName || '',
+      authorRole: article.authorRole || '',
+      authorPhotoUrl: article.authorPhotoUrl || '',
       heroImageUrl: article.heroImageUrl || '',
       imageCaption: article.imageCaption || '',
       heroVideoUrl: article.heroVideoUrl || '',
@@ -121,6 +127,38 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
       isMainHero: article.isMainHero || false,
     },
   });
+
+  useEffect(() => {
+    if (!isEditing && userProfile) {
+      if (!form.getValues('authorName')) {
+        form.setValue('authorName', userProfile.name || 'Redacción El Diario de la Diáspora');
+      }
+      if (!form.getValues('authorRole')) {
+        form.setValue('authorRole', 'Redactor');
+      }
+      if (!form.getValues('authorPhotoUrl') && userProfile.photoUrl) {
+        form.setValue('authorPhotoUrl', userProfile.photoUrl);
+      }
+    }
+  }, [userProfile, isEditing, form]);
+
+  const handleAuthorPhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      toast({ title: "Subiendo foto del autor...", description: "Por favor, espera." });
+      try {
+        const downloadURL = await uploadImage(file);
+        form.setValue('authorPhotoUrl', downloadURL, { shouldValidate: true });
+        toast({ title: "Foto de autor subida", description: "La foto se ha subido correctamente." });
+      } catch (error) {
+        toast({ variant: 'destructive', title: "Error", description: "No se pudo subir la foto del autor." });
+        console.error(error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
 
   const handleHeroImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -210,6 +248,9 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         categoryId: values.categoryId,
         subCategoryId: null,
         authorId: userProfile.uid,
+        authorName: values.authorName?.trim() || userProfile.name || 'Redacción El Diario de la Diáspora',
+        authorRole: values.authorRole?.trim() || 'Redactor',
+        authorPhotoUrl: values.authorPhotoUrl || '',
         heroImageUrl: values.heroImageUrl || "",
         imageCaption: values.imageCaption || "",
         heroVideoUrl: values.heroVideoUrl || "",
@@ -398,6 +439,65 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                         </FormItem>
                     )} />
                 </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><User className="h-5 w-5"/> Firma del Autor / Periodista</CardTitle>
+                <CardDescription>Personaliza la foto, nombre y cargo que se mostrarán en la cabecera de la noticia.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3 p-3 rounded-xl border bg-muted/20">
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-primary/40 bg-muted shrink-0 flex items-center justify-center shadow-xs">
+                    {form.watch('authorPhotoUrl') ? (
+                      <img src={form.watch('authorPhotoUrl')} alt="Foto autor" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-7 h-7 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <FormLabel className="text-xs font-semibold">Foto en el Círculo</FormLabel>
+                    <Input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleAuthorPhotoUpload}
+                      disabled={isUploading}
+                      className="text-xs h-8 file:text-xs"
+                    />
+                    {form.watch('authorPhotoUrl') && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-xs text-destructive hover:text-destructive h-5 px-1 py-0"
+                        onClick={() => form.setValue('authorPhotoUrl', '')}
+                      >
+                        Quitar foto
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <FormField control={form.control} name="authorName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Autor</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ej. Eustache Sanon o Redacción El Diario" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="authorRole" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cargo o Especialidad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ej. Internacionalista/Analista político o Redactor" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </CardContent>
             </Card>
 
             <Card>
