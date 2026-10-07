@@ -316,17 +316,19 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
           <ListOrdered className="h-4 w-4" />
         </Toggle>
         <label
+          htmlFor="article-editor-image-upload"
           className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer select-none transition-colors"
           title="Insertar foto dentro del texto"
         >
-          <ImageIcon className="h-4 w-4" />
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={handleImageUpload}
-          />
+          <ImageIcon className="h-4 w-4 pointer-events-none" />
         </label>
+        <input
+          id="article-editor-image-upload"
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={handleImageUpload}
+        />
       </div>
 
       {/* Botón Pantalla Completa */}
