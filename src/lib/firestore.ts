@@ -74,7 +74,7 @@ const defaultSettings: SiteSettings = {
     _id: 'site',
     branding: {
       siteName: "El Diario de la Diáspora",
-      tagline: "InformaciÃ³n independiente para la comunidad hispana e internacional",
+      tagline: "Últimas Noticias",
       logoUrl: "/logo-horizontal.png",
       logoWidth: 260,
       logoHeight: 55,

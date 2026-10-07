@@ -10,10 +10,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const siteName = settings?.branding?.siteName || 'El Diario de la Diáspora';
   return {
     title: {
-      default: `${siteName}: Últimas Noticias de la Comunidad Hispana e Internacional`,
+      default: `${siteName}: Últimas Noticias`,
       template: `%s | ${siteName}`,
     },
-    description: settings?.branding?.tagline || 'Información independiente para la comunidad hispana e internacional.',
+    description: settings?.branding?.tagline || 'Información independiente.',
     icons: {
       icon: [
         { url: '/favicon.ico', sizes: 'any' },

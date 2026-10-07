@@ -7,7 +7,7 @@ import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X, User, Calendar } from "lucide-react";
+import { Loader2, PlusCircle, Settings, Image as ImageIcon, Video, Info, Tag, X, User, Calendar, Edit2, Check } from "lucide-react";
 import { addArticle, updateArticle, uploadImage, uploadVideo, addCategory, getAllArticles } from "@/lib/firestore";
 import { revalidateHomepage } from "@/app/actions";
 import type { Category, Article } from "@/lib/types";
@@ -137,6 +137,8 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
   });
   const [tagInput, setTagInput] = useState("");
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const [editingTagIndex, setEditingTagIndex] = useState<number | null>(null);
+  const [editingTagValue, setEditingTagValue] = useState("");
 
   const addTagsFromInput = (value: string) => {
     const newTags = cleanAndExtractTags(value);
@@ -152,15 +154,49 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
     setTagInput("");
   };
 
-  const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag));
+  const removeTag = (tag: string) => {
+    setTags(prev => prev.filter(t => t !== tag));
+    if (editingTagIndex !== null) {
+      setEditingTagIndex(null);
+      setEditingTagValue("");
+    }
+  };
+
+  const startEditTag = (index: number) => {
+    setEditingTagIndex(index);
+    setEditingTagValue(tags[index] || "");
+  };
+
+  const saveEditTag = () => {
+    if (editingTagIndex === null) return;
+    const cleaned = cleanAndExtractTags(editingTagValue);
+    if (cleaned.length > 0) {
+      setTags(prev => {
+        const next = [...prev];
+        next[editingTagIndex] = cleaned[0];
+        for (let i = 1; i < cleaned.length; i++) {
+          if (!next.includes(cleaned[i])) next.push(cleaned[i]);
+        }
+        return next;
+      });
+    } else {
+      setTags(prev => prev.filter((_, i) => i !== editingTagIndex));
+    }
+    setEditingTagIndex(null);
+    setEditingTagValue("");
+  };
+
+  const cancelEditTag = () => {
+    setEditingTagIndex(null);
+    setEditingTagValue("");
+  };
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       addTagsFromInput(tagInput);
-    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-      setTags(prev => prev.slice(0, -1));
     }
+    // No borramos con Backspace en vacío para evitar borrado accidental en dispositivos móviles
   };
 
   const form = useForm<ArticleFormValues>({
@@ -589,19 +625,75 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                   className="flex flex-wrap gap-1.5 min-h-[42px] w-full rounded-md border border-input bg-background px-3 py-2 cursor-text"
                   onClick={() => tagInputRef.current?.focus()}
                 >
-                  {tags.map(tag => (
-                    <span key={tag} className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                      <span>#{tag}</span>
-                      <button
-                        type="button"
-                        title="Quitar etiqueta"
-                        onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
-                        className="hover:text-destructive hover:scale-110 transition-transform p-0.5"
+                  {tags.map((tag, idx) => {
+                    const isEditing = editingTagIndex === idx;
+
+                    if (isEditing) {
+                      return (
+                        <div
+                          key={`edit-${idx}`}
+                          className="flex items-center gap-1 bg-primary/20 text-primary text-xs font-semibold px-2.5 py-1 rounded-full border border-primary/50 shadow-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="text-primary font-bold">#</span>
+                          <input
+                            type="text"
+                            autoFocus
+                            value={editingTagValue}
+                            onChange={(e) => setEditingTagValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                saveEditTag();
+                              } else if (e.key === 'Escape') {
+                                cancelEditTag();
+                              }
+                            }}
+                            onBlur={saveEditTag}
+                            className="bg-transparent border-b border-primary text-xs outline-none w-28 text-primary font-bold"
+                          />
+                          <button
+                            type="button"
+                            title="Guardar cambio"
+                            onClick={(e) => { e.stopPropagation(); saveEditTag(); }}
+                            className="p-1 hover:text-green-600 transition-colors"
+                          >
+                            <Check className="h-3.5 w-3.5 text-green-600" />
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <span
+                        key={tag}
+                        className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold pl-3 pr-1 py-1 rounded-full group transition-colors hover:bg-primary/20 shadow-xs"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
+                        <button
+                          type="button"
+                          onClick={() => startEditTag(idx)}
+                          className="flex items-center gap-1 hover:underline cursor-pointer focus:outline-none text-left"
+                          title="Toca para editar esta etiqueta"
+                        >
+                          <span>#{tag}</span>
+                          <Edit2 className="h-3 w-3 opacity-40 group-hover:opacity-100 transition-opacity ml-0.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Eliminar etiqueta #${tag}`}
+                          title="Eliminar esta etiqueta"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTag(tag);
+                          }}
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-primary/70 hover:text-white hover:bg-destructive transition-colors touch-manipulation ml-0.5"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    );
+                  })}
                   <input
                     ref={tagInputRef}
                     value={tagInput}
