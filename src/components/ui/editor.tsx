@@ -227,6 +227,7 @@ interface ToolbarProps {
 
 const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => {
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,6 +242,10 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
         } catch (error) {
           console.error('Error al subir imagen:', error);
           toast({ title: 'Error', description: 'No se pudo subir la imagen.', variant: 'destructive' });
+        } finally {
+          if (event.target) {
+            event.target.value = '';
+          }
         }
       }
     },
@@ -311,17 +316,23 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
         <Toggle size="sm" pressed={editor.isActive('orderedList')} onPressedChange={toggleOrderedList}>
           <ListOrdered className="h-4 w-4" />
         </Toggle>
-        <Button size="sm" variant="outline" asChild className="relative cursor-pointer">
-          <div>
-            <ImageIcon className="h-4 w-4" />
-            <input
-              type="file"
-              accept="image/*"
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              onChange={handleImageUpload}
-            />
-          </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          className="cursor-pointer"
+          title="Insertar foto dentro del texto"
+        >
+          <ImageIcon className="h-4 w-4" />
         </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
       </div>
 
       {/* Botón Pantalla Completa */}
