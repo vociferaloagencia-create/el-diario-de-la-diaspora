@@ -13,7 +13,7 @@ import { BreakingNewsTicker } from "./BreakingNewsTicker";
 import { BrowserNotificationPrompt } from "./BrowserNotificationPrompt";
 
 
-import { LanguageTranslator, setPageLanguage } from "./LanguageTranslator";
+import { LanguageTranslator, setPageLanguage, LANGUAGES_LIST } from "./LanguageTranslator";
 import { TranslatedCategoryName } from "./TranslatedCategoryName";
 
 interface HeaderProps {
@@ -178,28 +178,29 @@ export function Header({ settings, categories }: HeaderProps) {
                 </SheetHeader>
 
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-                  {/* Selector de Idioma Movil */}
-                  <div className="flex items-center justify-between p-2.5 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1 border border-slate-200/80 dark:border-slate-800">
+                  {/* Selector de Idioma Movil con Banderas */}
+                  <div className="flex flex-col gap-2 p-2.5 bg-slate-100 dark:bg-slate-900 rounded-lg mb-1 border border-slate-200/80 dark:border-slate-800">
                     <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 font-headline uppercase flex items-center gap-1.5">
                       <Globe className="w-3.5 h-3.5 text-primary" />
                       Idioma / Language:
                     </span>
-                    <div className="flex items-center bg-white dark:bg-slate-950 border border-slate-200/90 dark:border-slate-800 rounded-md p-0.5">
-                      {(['ES', 'FR', 'EN', 'AR'] as const).map((lang) => (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {LANGUAGES_LIST.map((item) => (
                         <button
-                          key={lang}
+                          key={item.code}
                           type="button"
                           onClick={() => {
-                            handleLanguageChange(lang);
+                            handleLanguageChange(item.code);
                             setIsSheetOpen(false);
                           }}
-                          className={`notranslate px-2 py-1 text-[11px] font-extrabold uppercase rounded transition-all ${
-                            currentLang === lang
-                              ? 'bg-primary text-white shadow-xs font-black'
-                              : 'text-slate-600 dark:text-slate-400 hover:text-primary'
+                          className={`notranslate flex items-center gap-2 px-2.5 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+                            currentLang === item.code
+                              ? 'bg-primary text-white border-primary shadow-xs font-bold'
+                              : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-primary/50'
                           }`}
                         >
-                          {lang}
+                          <span className="text-sm leading-none">{item.flag}</span>
+                          <span className="truncate">{item.label}</span>
                         </button>
                       ))}
                     </div>
@@ -339,21 +340,22 @@ export function Header({ settings, categories }: HeaderProps) {
           {/* Derecha: Selector 4 Idiomas + Buscar + Boton SUSCRÍBETE + Perfil */}
           <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
             
-            {/* SELECTOR DE IDIOMA */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 mr-1 sm:mr-2">
-              {(['ES', 'FR', 'EN', 'AR'] as const).map((lang) => (
+            {/* SELECTOR DE IDIOMA CON BANDERAS */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 mr-1 sm:mr-2 shadow-2xs">
+              {LANGUAGES_LIST.map((item) => (
                 <button
-                  key={lang}
+                  key={item.code}
                   type="button"
-                  onClick={() => handleLanguageChange(lang)}
-                  className={`notranslate px-1.5 py-0.5 text-[10px] font-extrabold uppercase rounded transition-all ${
-                    currentLang === lang
-                      ? 'bg-primary text-white shadow-sm font-black'
+                  onClick={() => handleLanguageChange(item.code)}
+                  className={`notranslate flex items-center gap-1 px-1.5 py-0.5 rounded transition-all ${
+                    currentLang === item.code
+                      ? 'bg-primary text-white shadow-xs font-black'
                       : 'text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-white'
                   }`}
-                  title={`Cambiar idioma a ${lang}`}
+                  title={item.label}
                 >
-                  {lang}
+                  <span className="text-xs leading-none">{item.flag}</span>
+                  <span className="text-[10px] font-extrabold uppercase">{item.code}</span>
                 </button>
               ))}
             </div>

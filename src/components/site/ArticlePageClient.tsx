@@ -197,18 +197,25 @@ export function ArticlePageClient({ article, author, settings, category, related
                     </div>
                   ) : article.heroImageUrl && (
                       <figure className="mb-8">
-                        <div className="relative aspect-video w-full rounded-t-lg overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
-                          <Image
-                              src={article.heroImageUrl}
-                              alt={article.title}
-                              fill
-                              sizes="(max-width: 1024px) 100vw, 800px"
-                              className="object-cover"
-                              priority
+                        <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-950 flex items-center justify-center min-h-[280px] max-h-[580px]">
+                          {/* Fondo ambiental difuminado para armonizar márgenes laterales */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={article.heroImageUrl}
+                            alt=""
+                            aria-hidden="true"
+                            className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-25 scale-110 pointer-events-none"
+                          />
+                          {/* Imagen principal íntegra sin ningún recorte */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={article.heroImageUrl}
+                            alt={article.title}
+                            className="relative z-10 w-full h-auto max-h-[580px] object-contain mx-auto"
                           />
                         </div>
                         {article.imageCaption && (
-                          <figcaption className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 italic px-4 font-serif">
+                          <figcaption className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2.5 italic px-4 font-serif">
                             {article.imageCaption}
                           </figcaption>
                         )}

@@ -16,6 +16,8 @@ const teamValues = [
   { icon: Newspaper, title: "Vocación", desc: "El periodismo no es solo un trabajo para nosotros, es nuestro estilo de vida." },
 ];
 
+export const dynamic = 'force-dynamic';
+
 export default async function ComunidadPage() {
   const [settings, categories] = await Promise.all([
     getSiteSettings(),
@@ -84,41 +86,39 @@ export default async function ComunidadPage() {
             </div>
         </section>
 
-        {/* Galería Fotográfica de la Empresa */}
-        <section className="py-12 md:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold font-headline text-slate-900 dark:text-white mb-3">Galería Corporativa</h2>
-                <p className="text-slate-600 dark:text-slate-400">Compartiendo el día a día y la unidad de nuestra empresa.</p>
-            </div>
+        {/* Galería Fotográfica de la Empresa (Solo fotos reales guardadas) */}
+        {comm?.gallery && comm.gallery.length > 0 && (
+          <section className="py-12 md:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-10">
+                  <h2 className="text-3xl font-bold font-headline text-slate-900 dark:text-white mb-3">Galería Corporativa</h2>
+                  <p className="text-slate-600 dark:text-slate-400">Compartiendo el día a día y la unidad de nuestra empresa.</p>
+              </div>
 
-            {/* Grid de Imágenes (5 Fotos) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(comm?.gallery && comm.gallery.length > 0 ? comm.gallery : [
-                    { title: "Reunión Editorial", imageUrl: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "Nuestra Sala de Redacción", imageUrl: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "Celebrando Metas Juntos", imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "El equipo completo de Diáspora", imageUrl: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=2070&auto=format&fit=crop" },
-                    { title: "Fraternidad y Unidad", imageUrl: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?q=80&w=2070&auto=format&fit=crop" },
-                ]).map((photo, idx) => (
-                    <div 
-                      key={idx} 
-                      className={`group relative rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800 min-h-[260px] ${
-                        idx === 3 ? 'aspect-video md:aspect-[21/9] lg:aspect-video md:col-span-2' : 'aspect-square md:aspect-[4/3] lg:aspect-square'
-                      }`}
-                    >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img 
-                            src={photo.imageUrl}
-                            alt={photo.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                            <span className="text-white font-bold font-headline text-lg">{photo.title}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </section>
+              {/* Grid de Imágenes */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {comm.gallery.map((photo, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`group relative rounded-2xl overflow-hidden bg-slate-200 dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-800 min-h-[260px] ${
+                          idx === 3 ? 'aspect-video md:aspect-[21/9] lg:aspect-video md:col-span-2' : 'aspect-square md:aspect-[4/3] lg:aspect-square'
+                        }`}
+                      >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img 
+                              src={photo.imageUrl}
+                              alt={photo.title || 'Foto de comunidad'}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                          {photo.title && (
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
+                                <span className="text-white font-bold font-headline text-lg">{photo.title}</span>
+                            </div>
+                          )}
+                      </div>
+                  ))}
+              </div>
+          </section>
+        )}
       </main>
 
       <Footer />

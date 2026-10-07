@@ -106,18 +106,48 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
 
 
   const isEditing = !!article._id;
-  const [tags, setTags] = useState<string[]>(
-    Array.isArray(article.tags) && article.tags.length > 0 && article.tags[0] !== article.categoryId
-      ? article.tags
-      : (article.tags?.filter(t => t !== article.categoryId) ?? [])
-  );
+
+  // Función inteligente para separar y limpiar etiquetas (elimina dobles almohadillas ## y separa bloques)
+  const cleanAndExtractTags = (input: string | string[]): string[] => {
+    const rawList = Array.isArray(input) ? input : [input];
+    const result: string[] = [];
+    for (const item of rawList) {
+      if (!item) continue;
+      // Separa por comas, puntos y comas, espacios y símbolos de hashtag #
+      const pieces = item.split(/[,;\s#]+/);
+      for (const piece of pieces) {
+        const cleaned = piece
+          .trim()
+          .toLowerCase()
+          .replace(/^#+/, '')
+          .replace(/[^\w-áéíóúñ]/gi, '')
+          .replace(/^-+|-+$/g, '');
+        if (cleaned.length >= 2 && !result.includes(cleaned)) {
+          result.push(cleaned);
+        }
+      }
+    }
+    return result;
+  };
+
+  const [tags, setTags] = useState<string[]>(() => {
+    if (!article.tags) return [];
+    const extracted = cleanAndExtractTags(article.tags);
+    return extracted.filter(t => t !== article.categoryId);
+  });
   const [tagInput, setTagInput] = useState("");
   const tagInputRef = useRef<HTMLInputElement>(null);
 
-  const addTag = (value: string) => {
-    const normalized = value.trim().toLowerCase().replace(/\s+/g, '-');
-    if (normalized && !tags.includes(normalized)) {
-      setTags(prev => [...prev, normalized]);
+  const addTagsFromInput = (value: string) => {
+    const newTags = cleanAndExtractTags(value);
+    if (newTags.length > 0) {
+      setTags(prev => {
+        const merged = [...prev];
+        for (const t of newTags) {
+          if (!merged.includes(t)) merged.push(t);
+        }
+        return merged;
+      });
     }
     setTagInput("");
   };
@@ -127,7 +157,7 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      addTag(tagInput);
+      addTagsFromInput(tagInput);
     } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
       setTags(prev => prev.slice(0, -1));
     }
@@ -560,9 +590,14 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                   onClick={() => tagInputRef.current?.focus()}
                 >
                   {tags.map(tag => (
-                    <span key={tag} className="flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-2 py-0.5 rounded-full">
-                      #{tag}
-                      <button type="button" title="Quitar etiqueta" onClick={(e) => { e.stopPropagation(); removeTag(tag); }} className="hover:text-destructive">
+                    <span key={tag} className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                      <span>#{tag}</span>
+                      <button
+                        type="button"
+                        title="Quitar etiqueta"
+                        onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
+                        className="hover:text-destructive hover:scale-110 transition-transform p-0.5"
+                      >
                         <X className="h-3 w-3" />
                       </button>
                     </span>
@@ -572,9 +607,14 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                     value={tagInput}
                     onChange={e => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
-                    onBlur={() => { if (tagInput.trim()) addTag(tagInput); }}
-                    placeholder={tags.length === 0 ? "corrupcion, economia, política..." : ""}
-                    className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = e.clipboardData.getData('text');
+                      addTagsFromInput(pasted);
+                    }}
+                    onBlur={() => { if (tagInput.trim()) addTagsFromInput(tagInput); }}
+                    placeholder={tags.length === 0 ? "deportes, concacaf, copa de oro..." : "Añadir otra etiqueta..."}
+                    className="flex-1 min-w-[140px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                   />
                 </div>
               </CardContent>

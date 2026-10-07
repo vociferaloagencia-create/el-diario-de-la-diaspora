@@ -102,9 +102,9 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2.5 my-8 p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-      <span className="font-extrabold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 mr-1 flex items-center gap-1.5">
+      <span className="font-bold text-xs text-slate-700 dark:text-slate-300 mr-2 flex items-center gap-1.5">
         <Share2 className="w-4 h-4 text-primary" />
-        Compartir:
+        Difundir noticia:
       </span>
 
       {/* Botón Compartir Nativo (Ideal para iPhone / Android) */}
@@ -114,9 +114,10 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
           onClick={handleNativeShare}
           size="sm"
           className="h-9 px-3 gap-1.5 font-bold text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
+          title="Abrir opciones de envío del dispositivo"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span>Compartir</span>
+          <span>Enviar desde móvil</span>
         </Button>
       )}
 

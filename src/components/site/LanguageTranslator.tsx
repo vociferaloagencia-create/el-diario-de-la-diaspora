@@ -25,26 +25,41 @@ const LANG_CODE_MAP: Record<SupportedLanguage, string> = {
   AR: "ar",
 };
 
+export const LANGUAGES_LIST = [
+  { code: "ES" as SupportedLanguage, label: "Español", flag: "🇪🇸" },
+  { code: "FR" as SupportedLanguage, label: "Français", flag: "🇫🇷" },
+  { code: "EN" as SupportedLanguage, label: "English", flag: "🇺🇸" },
+  { code: "AR" as SupportedLanguage, label: "Árabe", flag: "🇸🇦" },
+];
+
 export function setPageLanguage(lang: SupportedLanguage) {
   const targetCode = LANG_CODE_MAP[lang] || "es";
 
   if (typeof document !== "undefined") {
-    // Set google translate cookie for current domain
-    const cookieValue = `/es/${targetCode}`;
     const domain = window.location.hostname;
-    
-    document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}`;
-    document.cookie = `googtrans=${cookieValue}; path=/`;
 
-    // Store preference in localStorage
-    localStorage.setItem("selected_site_lang", lang);
+    if (targetCode === "es") {
+      document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain};`;
+    } else {
+      const cookieValue = `/es/${targetCode}`;
+      document.cookie = `googtrans=${cookieValue}; path=/;`;
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain};`;
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain};`;
+    }
 
-    const select = document.querySelector(".goog-te-combo");
+    try {
+      localStorage.setItem("selected_site_lang", lang);
+    } catch (e) {
+      // ignore
+    }
+
+    const select = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
     if (select) {
       select.value = targetCode;
       select.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
     } else {
-      // Reload page to apply google translate cookie
       window.location.reload();
     }
   }
@@ -81,5 +96,31 @@ export function LanguageTranslator() {
 
   if (!mounted) return null;
 
-  return <div id="google_translate_element" className="hidden" aria-hidden="true" />;
+  return (
+    <>
+      <style jsx global>{`
+        .goog-te-banner-frame.skiptranslate,
+        .goog-te-banner-frame {
+          display: none !important;
+        }
+        body {
+          top: 0px !important;
+        }
+        .goog-tooltip {
+          display: none !important;
+        }
+        .goog-tooltip:hover {
+          display: none !important;
+        }
+        .goog-text-highlight {
+          background-color: transparent !important;
+          box-shadow: none !important;
+        }
+        #goog-gt-tt {
+          display: none !important;
+        }
+      `}</style>
+      <div id="google_translate_element" className="hidden" aria-hidden="true" />
+    </>
+  );
 }
