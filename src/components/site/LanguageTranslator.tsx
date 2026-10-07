@@ -26,11 +26,32 @@ const LANG_CODE_MAP: Record<SupportedLanguage, string> = {
 };
 
 export const LANGUAGES_LIST = [
-  { code: "ES" as SupportedLanguage, label: "Español", flag: "🇪🇸" },
-  { code: "FR" as SupportedLanguage, label: "Français", flag: "🇫🇷" },
-  { code: "EN" as SupportedLanguage, label: "English", flag: "🇺🇸" },
-  { code: "AR" as SupportedLanguage, label: "Árabe", flag: "🇸🇦" },
+  { code: "ES" as SupportedLanguage, label: "Español" },
+  { code: "FR" as SupportedLanguage, label: "Français" },
+  { code: "EN" as SupportedLanguage, label: "English" },
+  { code: "AR" as SupportedLanguage, label: "Árabe" },
 ];
+
+// Anti-crash patch for React / Next.js when Google Translate mutates DOM text nodes
+if (typeof window !== "undefined" && typeof Node === "function" && Node.prototype) {
+  const originalRemoveChild = Node.prototype.removeChild;
+  // @ts-expect-error Google translate DOM mutation guard
+  Node.prototype.removeChild = function <T extends Node>(child: T): T {
+    if (child.parentNode !== this) {
+      return child;
+    }
+    return originalRemoveChild.apply(this, [child]) as T;
+  };
+
+  const originalInsertBefore = Node.prototype.insertBefore;
+  // @ts-expect-error Google translate DOM mutation guard
+  Node.prototype.insertBefore = function <T extends Node>(newNode: T, referenceNode: Node | null): T {
+    if (referenceNode && referenceNode.parentNode !== this) {
+      return newNode;
+    }
+    return originalInsertBefore.apply(this, [newNode, referenceNode]) as T;
+  };
+}
 
 export function setPageLanguage(lang: SupportedLanguage) {
   const targetCode = LANG_CODE_MAP[lang] || "es";
@@ -60,7 +81,15 @@ export function setPageLanguage(lang: SupportedLanguage) {
       select.value = targetCode;
       select.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
     } else {
-      window.location.reload();
+      setTimeout(() => {
+        const retrySelect = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
+        if (retrySelect) {
+          retrySelect.value = targetCode;
+          retrySelect.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
+        } else {
+          window.location.reload();
+        }
+      }, 300);
     }
   }
 }
