@@ -227,7 +227,6 @@ interface ToolbarProps {
 
 const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => {
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,23 +315,18 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
         <Toggle size="sm" pressed={editor.isActive('orderedList')} onPressedChange={toggleOrderedList}>
           <ListOrdered className="h-4 w-4" />
         </Toggle>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => fileInputRef.current?.click()}
-          className="cursor-pointer"
+        <label
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer select-none transition-colors"
           title="Insertar foto dentro del texto"
         >
           <ImageIcon className="h-4 w-4" />
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageUpload}
-        />
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={handleImageUpload}
+          />
+        </label>
       </div>
 
       {/* Botón Pantalla Completa */}
