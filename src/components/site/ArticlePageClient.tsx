@@ -224,24 +224,26 @@ export function ArticlePageClient({ article, author, settings, category, related
 
                   <ArticleBody content={article.content} inArticleAd={settings.ads.inArticle} slug={article.slug} />
 
-                  {article.tags && article.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
-                      {article.tags.map(tag => (
-                        <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}
-                          className="text-xs px-3 py-1 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors font-medium">
-                          #{tag}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+                  <div className="clear-both w-full">
+                    {article.tags && article.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
+                        {article.tags.map(tag => (
+                          <Link key={tag} href={`/tag/${encodeURIComponent(tag)}`}
+                            className="text-xs px-3 py-1 rounded-full border border-primary/30 text-primary hover:bg-primary/10 transition-colors font-medium">
+                            #{tag}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
 
-                  <ShareButtons
-                      url={`/articles/${article.slug}`}
-                      title={article.title}
-                  />
+                    <ShareButtons
+                        url={`/articles/${article.slug}`}
+                        title={article.title}
+                    />
 
-                  {/* Sección de Comentarios de Lectores (Solicitada por la clienta) */}
-                  <ArticleComments articleSlug={article.slug} />
+                    {/* Sección de Comentarios de Lectores (Solicitada por la clienta) */}
+                    <ArticleComments articleSlug={article.slug} />
+                  </div>
               </article>
           </div>
 
