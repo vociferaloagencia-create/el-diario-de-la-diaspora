@@ -16,7 +16,6 @@ const socialMediaSchema = z.object({
   facebookUrl: z.string().url().optional().or(z.literal('')),
   twitterUrl: z.string().url().optional().or(z.literal('')),
   instagramUrl: z.string().url().optional().or(z.literal('')),
-  youtubeUrl: z.string().url().optional().or(z.literal('')),
   tiktokUrl: z.string().url().optional().or(z.literal('')),
 });
 
@@ -35,7 +34,6 @@ export function SocialLinksForm({ initialData }: SocialLinksFormProps) {
       facebookUrl: initialData.facebookUrl || "",
       twitterUrl: initialData.twitterUrl || "",
       instagramUrl: initialData.instagramUrl || "",
-      youtubeUrl: initialData.youtubeUrl || "",
       tiktokUrl: initialData.tiktokUrl || "",
     },
   });
@@ -94,13 +92,6 @@ export function SocialLinksForm({ initialData }: SocialLinksFormProps) {
                     <FormItem>
                     <FormLabel className="flex items-center gap-2"><Globe className="h-4 w-4 text-pink-600" /> Instagram</FormLabel>
                     <FormControl><Input {...field} value={field.value || ''} placeholder="https://instagram.com/TuUsuario" /></FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )} />
-                <FormField control={form.control} name="youtubeUrl" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel className="flex items-center gap-2"><Globe className="h-4 w-4 text-red-600" /> YouTube</FormLabel>
-                    <FormControl><Input {...field} value={field.value || ''} placeholder="https://youtube.com/@TuCanal" /></FormControl>
                     <FormMessage />
                     </FormItem>
                 )} />

@@ -3,18 +3,17 @@
 import Link from "next/link";
 import type { SocialNetwork } from "@/lib/types";
 import { getSiteSettings } from "@/lib/firestore";
-import { Facebook, Twitter, Instagram, Youtube, User, MessageCircle } from "lucide-react";
+import { Facebook, Twitter, Instagram, User, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { AuthArea } from "./AuthArea";
 
-const socialIconMap: Record<SocialNetwork, React.ComponentType<{ className?: string }>> = {
+const socialIconMap: Partial<Record<SocialNetwork, React.ComponentType<{ className?: string }>>> = {
     facebook: Facebook,
     twitter: Twitter,
     instagram: Instagram,
-    youtube: Youtube,
-    tiktok: () => <User/>, // Placeholder, lucide-react doesn't have a TikTok icon
-    linkedin: () => <User/>, // Placeholder
-    whatsapp: () => <User/>, // Placeholder
+    tiktok: () => <User/>,
+    linkedin: () => <User/>,
+    whatsapp: () => <User/>,
 };
 
 
@@ -84,6 +83,7 @@ export async function Footer() {
 
                 {socialLinks.map(({ network, url }) => {
                     const Icon = socialIconMap[network];
+                    if (!Icon) return null;
                     return (
                         <a key={network} href={url} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors p-1.5 bg-slate-800 rounded-full hover:bg-slate-700">
                             <Icon className="h-5 w-5" />

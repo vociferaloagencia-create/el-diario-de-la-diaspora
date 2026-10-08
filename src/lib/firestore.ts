@@ -89,7 +89,6 @@ const defaultSettings: SiteSettings = {
       facebookUrl: "https://facebook.com",
       instagramUrl: "https://instagram.com",
       twitterUrl: "https://twitter.com",
-      youtubeUrl: "https://youtube.com",
     },
     homePage: {
       hero: { mode: "auto" },
