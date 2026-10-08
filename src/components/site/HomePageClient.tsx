@@ -22,27 +22,7 @@ interface HomePageClientProps {
 }
 
 const ReelsWidget = ({ reels }: { reels: Reel[] }) => {
-  return (
-    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-xl p-4 flex flex-col justify-center shadow-sm">
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200 dark:border-slate-800">
-        <h3 className="font-bold text-xs uppercase tracking-wider font-headline text-slate-900 dark:text-white flex items-center gap-1.5">
-          <Video className="w-3.5 h-3.5 text-primary" />
-          Reels Destacados
-        </h3>
-        <Link href="/reels" className="text-xs font-semibold text-primary hover:underline">Ver todos</Link>
-      </div>
-      <div className="flex flex-col gap-2">
-        {reels.map(reel => (
-          <Link key={reel._id} href={reel.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group">
-            <div className="bg-primary text-white rounded-md p-1.5 flex-shrink-0 shadow-sm">
-              <Video className="w-3.5 h-3.5"/>
-            </div>
-            <p className="font-serif font-semibold text-xs leading-snug text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors line-clamp-2">{reel.title}</p>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  return null;
 };
 
 export function HomePageClient({ 
