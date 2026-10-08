@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
-import { Loader2, Mail, Lock, UserPlus, Shield, User, Info } from "lucide-react";
+import { Loader2, Mail, Lock, UserPlus, Shield, User, Info, PenTool } from "lucide-react";
 import { createAccount } from "@/lib/auth";
 import type { AppUser } from "@/lib/types";
 
@@ -33,7 +33,7 @@ const formSchema = z.object({
   username: z.string().min(3, { message: "El usuario debe tener al menos 3 caracteres." }).regex(/^[a-zA-Z0-9_.-]+$/, { message: "Solo letras, números, guiones y puntos." }).optional().or(z.literal("")),
   email: z.string().email({ message: "Por favor, introduce un correo electrónico válido." }),
   password: z.string().min(6, { message: "La contraseña debe tener al menos 6 caracteres." }),
-  role: z.enum(["admin", "editor"]).default("editor"),
+  role: z.enum(["admin", "editor", "columnista"]).default("columnista"),
 });
 
 interface AddUserFormProps {
@@ -184,6 +184,12 @@ export function AddUserForm({ onUserAdded }: AddUserFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="columnista">
+                    <div className="flex items-center gap-2">
+                      <PenTool className="h-4 w-4 text-primary" />
+                      <span>Columnista</span>
+                    </div>
+                  </SelectItem>
                   <SelectItem value="editor">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />

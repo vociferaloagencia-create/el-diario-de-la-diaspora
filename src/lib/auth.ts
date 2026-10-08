@@ -477,7 +477,7 @@ export async function getAllUsers(): Promise<AppUser[]> {
   }
 }
 
-export async function updateUserRole(uid: string, newRole: 'superadmin' | 'admin' | 'editor' | 'user'): Promise<void> {
+export async function updateUserRole(uid: string, newRole: AppUser['role']): Promise<void> {
   if (isIsolatedMode) {
     console.warn("[Seguridad] Cambio de rol bloqueado en modo aislado.");
     return;

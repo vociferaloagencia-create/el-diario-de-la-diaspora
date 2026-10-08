@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, KeyRound, ShieldCheck, ShieldAlert, User, Shield, Mail, Calendar } from "lucide-react"
+import { MoreHorizontal, ArrowUpDown, KeyRound, ShieldCheck, ShieldAlert, User, Shield, Mail, Calendar, PenTool } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -59,7 +59,7 @@ const CellActions = ({ user }: { user: UserForTable }) => {
         }
     };
 
-    const handleChangeRole = async (newRole: 'superadmin' | 'admin' | 'editor' | 'user') => {
+    const handleChangeRole = async (newRole: AppUser['role']) => {
         if (user.role === newRole) return;
         try {
             await updateUserRole(user.uid, newRole);
@@ -88,7 +88,7 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                         <MoreHorizontal className="h-4 w-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                     <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                      <DropdownMenuSub>
                         <DropdownMenuSubTrigger className="gap-2">
@@ -99,13 +99,17 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                         <DropdownMenuSubContent>
                             {isSuperAdmin && (
                                 <DropdownMenuItem onClick={() => handleChangeRole('superadmin')} disabled={user.role === 'superadmin'} className="gap-2 text-red-600 focus:text-red-700">
-                                    <ShieldCheck className="h-3.5 w-3.5" />
-                                    Super Admin
+                                    <ShieldAlert className="h-3.5 w-3.5" />
+                                    Super Admin y Columnista
                                 </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem onClick={() => handleChangeRole('columnista')} disabled={user.role === 'columnista'} className="gap-2 text-blue-600 focus:text-blue-700">
+                                <PenTool className="h-3.5 w-3.5" />
+                                Columnista
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangeRole('admin')} disabled={user.role === 'admin'} className="gap-2">
                                 <ShieldCheck className="h-3.5 w-3.5" />
-                                Admin
+                                Administrador
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangeRole('editor')} disabled={user.role === 'editor'} className="gap-2">
                                 <User className="h-3.5 w-3.5" />
@@ -180,17 +184,46 @@ export const columns: ColumnDef<UserForTable>[] = [
     header: "Rol",
     cell: ({ row }) => {
         const role = row.getValue("role") as string;
-        let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
         
-        if (role === 'superadmin') variant = 'destructive';
-        else if (role === 'admin') variant = 'default';
+        if (role === 'superadmin') {
+          return (
+            <Badge variant="destructive" className="gap-1.5 text-xs bg-red-600 hover:bg-red-700 text-white font-medium">
+              <ShieldAlert className="h-3 w-3" />
+              Superadministrador y Columnista
+            </Badge>
+          );
+        }
+        if (role === 'columnista') {
+          return (
+            <Badge variant="secondary" className="gap-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-medium">
+              <PenTool className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+              Columnista
+            </Badge>
+          );
+        }
+        if (role === 'admin') {
+          return (
+            <Badge variant="default" className="gap-1.5 text-xs font-medium">
+              <ShieldCheck className="h-3 w-3" />
+              Administrador
+            </Badge>
+          );
+        }
+        if (role === 'editor') {
+          return (
+            <Badge variant="secondary" className="gap-1.5 text-xs font-medium">
+              <User className="h-3 w-3" />
+              Editor
+            </Badge>
+          );
+        }
 
         return (
-          <Badge variant={variant} className="capitalize gap-1.5 text-xs">
-            {role === 'superadmin' ? <ShieldAlert className="h-3 w-3" /> : role === 'admin' ? <ShieldCheck className="h-3 w-3" /> : <User className="h-3 w-3" />}
-            {role}
+          <Badge variant="outline" className="capitalize gap-1.5 text-xs">
+            <User className="h-3 w-3" />
+            {role || 'Usuario'}
           </Badge>
-        )
+        );
     }
   },
   {

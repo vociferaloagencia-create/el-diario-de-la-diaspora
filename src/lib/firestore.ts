@@ -20,7 +20,7 @@ import {
   Timestamp,
   serverTimestamp,
 } from 'firebase/firestore';
-import type { Article, Author, Category, Homepage, SiteSettings, AdClick, Reel } from './types';
+import type { Article, Author, Category, Homepage, SiteSettings, AdClick, Reel, AppUser } from './types';
 import { defaultAuthors, defaultReels } from './mock-data';
 
 
@@ -431,6 +431,54 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 
 export async function getAuthorById(id: string): Promise<Author | null> {
   return getDocument<Author>('authors', id);
+}
+
+export async function getUserById(uid: string): Promise<AppUser | null> {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (!userDoc.exists()) return null;
+    return { uid: userDoc.id, ...userDoc.data() } as AppUser;
+  } catch (error) {
+    console.warn("[Firestore Safe] Error fetching user by ID:", error);
+    return null;
+  }
+}
+
+export async function getColumnists(): Promise<AppUser[]> {
+  try {
+    const snapshot = await getDocs(collection(db, 'users'));
+    const allUsers = snapshot.docs.map(d => ({ uid: d.id, ...d.data() } as AppUser));
+    // Incluir usuarios con rol columnista, superadmin (superadministrador y columnista) o autor activo
+    const columnists = allUsers.filter(u => 
+      u.role === 'columnista' || 
+      u.role === 'superadmin' || 
+      (u.authorRole && u.authorRole.toLowerCase().includes('columnista'))
+    );
+    return columnists.filter(u => u.name && u.name.trim() !== '');
+  } catch (error) {
+    console.warn("[Firestore Safe] Error fetching columnists:", error);
+    return [];
+  }
+}
+
+export async function getArticlesByAuthor(authorIdOrName: string): Promise<Article[]> {
+  try {
+    const articlesRef = collection(db, 'articles');
+    const q1 = query(articlesRef, where('authorId', '==', authorIdOrName), where('status', '==', 'published'));
+    const snap1 = await getDocs(q1);
+    let articles = snap1.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+
+    if (articles.length === 0) {
+      const q2 = query(articlesRef, where('authorName', '==', authorIdOrName), where('status', '==', 'published'));
+      const snap2 = await getDocs(q2);
+      articles = snap2.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+    }
+
+    return articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  } catch (error) {
+    console.warn("[Firestore Safe] Error fetching articles by author:", error);
+    return [];
+  }
 }
 
 export async function getRelatedArticles(categoryId: string, currentArticleId: string): Promise<Article[]> {

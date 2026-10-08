@@ -25,7 +25,6 @@ export async function Footer() {
     { network: 'facebook', url: settings.socialLinks?.facebookUrl || "https://facebook.com" },
     { network: 'instagram', url: settings.socialLinks?.instagramUrl || "https://instagram.com" },
     { network: 'twitter', url: settings.socialLinks?.twitterUrl || "https://twitter.com" },
-    { network: 'youtube', url: settings.socialLinks?.youtubeUrl || "https://youtube.com" },
   ].filter(item => item.url);
     
   const logoUrl = settings.branding.logoFooterUrl || settings.branding.logoUrl;

@@ -22,10 +22,11 @@ export interface AppUser {
   uid: string;
   email: string;
   username?: string;
-  role: 'superadmin' | 'admin' | 'editor' | 'user';
+  role: 'superadmin' | 'admin' | 'editor' | 'columnista' | 'user';
   photoUrl?: string;
   name?: string;
   authorRole?: string;
+  bio?: string;
   createdAt: Timestamp | string;
 }
 
@@ -35,6 +36,8 @@ export interface Subscriber {
   name: string;
   email: string;
   phone?: string | null;
+  frequency?: 'diario' | 'semanal' | string;
+  preferredDay?: string | null;
   subscribedAt?: any;
   source?: string;
 }

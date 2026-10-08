@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import type { SiteSettings, Category } from "@/lib/types";
+import type { SiteSettings, Category, AppUser } from "@/lib/types";
 import { Button } from "../ui/button";
 import { AuthArea } from "./AuthArea";
-import { Menu, Search, X, ChevronRight, ChevronDown, Globe, Bell, Check } from "lucide-react";
+import { Menu, Search, X, ChevronRight, ChevronDown, Globe, Check, PenTool, User } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "../ui/sheet";
 import { BreakingNewsTicker } from "./BreakingNewsTicker";
-import { BrowserNotificationPrompt } from "./BrowserNotificationPrompt";
+import { getColumnists } from "@/lib/firestore";
 
 
 import { LanguageTranslator, setPageLanguage, LANGUAGES_LIST } from "./LanguageTranslator";
@@ -87,48 +87,17 @@ export function Header({ settings, categories }: HeaderProps) {
     setPageLanguage(lang);
   };
 
-  const [notificationState, setNotificationState] = useState<'default' | 'granted' | 'denied' | 'unsupported'>('default');
+  const [columnists, setColumnists] = useState<AppUser[]>([]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationState(Notification.permission);
-    } else if (typeof window !== 'undefined') {
-      setNotificationState('unsupported');
-    }
+    let isMounted = true;
+    getColumnists().then(data => {
+      if (isMounted) setColumnists(data);
+    }).catch(err => {
+      console.warn("Error cargando columnistas en header:", err);
+    });
+    return () => { isMounted = false; };
   }, []);
-
-  const handleToggleNotifications = async () => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert('Tu navegador no admite notificaciones push.');
-      return;
-    }
-
-    if (Notification.permission === 'granted') {
-      alert('¡Las notificaciones ya están activadas en este dispositivo!');
-      return;
-    }
-
-    if (Notification.permission === 'denied') {
-      alert('Las notificaciones están bloqueadas en tu navegador. Puedes habilitarlas en el candado de la barra de direcciones.');
-      return;
-    }
-
-    try {
-      const res = await Notification.requestPermission();
-      setNotificationState(res);
-      if (res === 'granted') {
-        localStorage.setItem('browser_push_subscribed', 'true');
-        try {
-          new Notification('El Diario de la Diáspora', {
-            body: '¡Notificaciones activadas! Recibirás noticias de última hora al instante.',
-            icon: '/icon.png',
-          });
-        } catch (e) {}
-      }
-    } catch (err) {
-      console.warn('Error al solicitar notificaciones:', err);
-    }
-  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +124,7 @@ export function Header({ settings, categories }: HeaderProps) {
   return (
     <>
       <LanguageTranslator />
-      <BrowserNotificationPrompt />
+
       
       <header className="sticky top-0 z-50 w-full bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
       {/* 1. TOP ROW: Fecha a la Izquierda | LOGO EN EL CENTRO | Selector + Buscar + SuscrÃ­bete + Perfil a la Derecha */}
@@ -272,6 +241,44 @@ export function Header({ settings, categories }: HeaderProps) {
 
                 <div className="h-px bg-slate-200 dark:bg-slate-800" />
 
+                {/* Sección COLUMNISTAS */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1 flex items-center gap-1.5">
+                    <PenTool className="w-3.5 h-3.5 text-primary" />
+                    COLUMNISTAS
+                  </h3>
+                  {columnists && columnists.length > 0 ? (
+                    <div className="space-y-1">
+                      {columnists.map((col) => (
+                        <Link
+                          key={col.uid}
+                          href={`/columnistas/${col.uid}`}
+                          onClick={() => setIsSheetOpen(false)}
+                          className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group"
+                        >
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                            {col.photoUrl ? (
+                              <img src={col.photoUrl} alt={col.name || 'Columnista'} className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-3.5 h-3.5 text-primary" />
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="truncate group-hover:underline">{col.name}</span>
+                            <span className="text-[10px] font-normal text-slate-400">
+                              {col.authorRole || (col.role === 'superadmin' ? 'Superadministrador y Columnista' : 'Columnista')}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-[11px] text-slate-400 italic px-2">No hay columnistas registrados aún.</p>
+                  )}
+                </div>
+
+                <div className="h-px bg-slate-200 dark:bg-slate-800" />
+
                 <div className="space-y-2">
                   <h3 className="text-xs font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
                     INSTITUCIONAL
@@ -288,23 +295,11 @@ export function Header({ settings, categories }: HeaderProps) {
               </div>
 
               {/* Pie del Menú Lateral */}
-              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 space-y-2">
+              <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
                 <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-wider py-2.5 shadow-sm">
                   <Link href="/submit" onClick={() => setIsSheetOpen(false)}>
                     SUSCRÍBETE AL PERIÓDICO
                   </Link>
-                </Button>
-                <Button 
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    handleToggleNotifications();
-                    setIsSheetOpen(false);
-                  }}
-                  className="w-full font-semibold text-xs py-2 gap-2 border-slate-200 dark:border-slate-800"
-                >
-                  <Bell className="w-4 h-4 text-primary" />
-                  <span>{notificationState === 'granted' ? 'Notificaciones Activas' : 'Activar Notificaciones Web'}</span>
                 </Button>
               </div>
             </SheetContent>
@@ -369,17 +364,7 @@ export function Header({ settings, categories }: HeaderProps) {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
             </form>
 
-            <Button 
-              type="button" 
-              onClick={handleToggleNotifications}
-              variant="outline" 
-              size="sm" 
-              className="hidden md:flex rounded-full px-3 h-9 gap-1.5 border-slate-200 dark:border-slate-800 text-xs font-semibold hover:border-primary/50 transition-all shadow-xs"
-              title={notificationState === 'granted' ? 'Notificaciones web activadas' : 'Activar notificaciones web'}
-            >
-              <Bell className={`w-3.5 h-3.5 ${notificationState === 'granted' ? 'text-emerald-500 fill-emerald-500' : 'text-slate-600 dark:text-slate-300'}`} />
-              <span className="hidden lg:inline">{notificationState === 'granted' ? 'Alertas Activas' : 'Notificaciones'}</span>
-            </Button>
+
 
             <Button asChild variant="default" size="sm" className="hidden sm:flex bg-primary hover:bg-primary/90 text-white font-bold rounded-full px-5 shadow-sm hover:shadow transition-all">
               <Link href="/submit">SUSCRÍBETE</Link>

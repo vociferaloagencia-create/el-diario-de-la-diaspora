@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, MailCheck, User, Phone, Mail } from "lucide-react";
+import { Loader2, MailCheck, User, Phone, Mail, Calendar, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -31,6 +38,8 @@ const formSchema = z.object({
     message: "Debes ingresar un correo electrónico válido.",
   }),
   phone: z.string().optional(),
+  frequency: z.enum(["diario", "semanal"]).default("diario"),
+  preferredDay: z.string().default("lunes"),
 });
 
 export function SubmitForm() {
@@ -44,17 +53,23 @@ export function SubmitForm() {
       name: "",
       email: "",
       phone: "",
+      frequency: "diario",
+      preferredDay: "lunes",
     },
   });
+
+  const selectedFrequency = form.watch("frequency");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      // Guardar el registro en Firebase Firestore
+      // Guardar el registro en Firebase Firestore con sus preferencias
       await addDoc(collection(db, 'subscribers'), {
         name: values.name,
         email: values.email,
         phone: values.phone || null,
+        frequency: values.frequency,
+        preferredDay: values.frequency === 'semanal' ? values.preferredDay : 'Todos los días',
         subscribedAt: serverTimestamp(),
         source: 'subscription_page'
       });
@@ -161,6 +176,71 @@ export function SubmitForm() {
                 </FormItem>
               )}
             />
+
+            {/* Preferencias de entrega: Frecuencia y Día */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+              <FormField
+                control={form.control}
+                name="frequency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1.5 text-xs">
+                      <Clock className="w-4 h-4 text-primary" />
+                      Frecuencia de noticias
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Selecciona la frecuencia" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="diario">Diario (Todos los días)</SelectItem>
+                        <SelectItem value="semanal">Semanal (Una vez por semana)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="preferredDay"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-slate-700 dark:text-slate-300 font-bold flex items-center gap-1.5 text-xs">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      Día preferido
+                    </FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                      disabled={selectedFrequency === 'diario'}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Selecciona el día" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="lunes">Lunes</SelectItem>
+                        <SelectItem value="martes">Martes</SelectItem>
+                        <SelectItem value="miercoles">Miércoles</SelectItem>
+                        <SelectItem value="jueves">Jueves</SelectItem>
+                        <SelectItem value="viernes">Viernes</SelectItem>
+                        <SelectItem value="sabado">Sábado</SelectItem>
+                        <SelectItem value="domingo">Domingo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="text-[11px]">
+                      {selectedFrequency === 'diario' ? 'Entrega activa todos los días.' : 'Elige qué día deseas recibir el boletín.'}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full h-12 text-base font-bold uppercase tracking-wider">
               {isSubmitting && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}

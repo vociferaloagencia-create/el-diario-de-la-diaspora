@@ -74,6 +74,8 @@ export default function SubscribersPage() {
           name: data.name || "Sin nombre",
           email: data.email || "",
           phone: data.phone || null,
+          frequency: data.frequency || "diario",
+          preferredDay: data.preferredDay || "Todos los días",
           subscribedAt: data.subscribedAt,
           source: data.source || "web",
           formattedDate,
@@ -292,6 +294,7 @@ export default function SubscribersPage() {
                   <TableHead className="font-bold">Lector</TableHead>
                   <TableHead className="font-bold">Correo Electrónico</TableHead>
                   <TableHead className="font-bold">Teléfono</TableHead>
+                  <TableHead className="font-bold">Frecuencia y Día</TableHead>
                   <TableHead className="font-bold">Fecha de Registro</TableHead>
                   <TableHead className="font-bold">Estado</TableHead>
                   <TableHead className="text-right font-bold">Acciones</TableHead>
@@ -321,6 +324,16 @@ export default function SubscribersPage() {
                       ) : (
                         <span className="text-xs text-muted-foreground italic">No provisto</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col text-xs">
+                        <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">
+                          {sub.frequency === 'semanal' ? 'Semanal' : 'Diario'}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground capitalize">
+                          {sub.preferredDay || (sub.frequency === 'semanal' ? 'Lunes' : 'Todos los días')}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-xs text-slate-500 dark:text-slate-400">
                       {sub.formattedDate}

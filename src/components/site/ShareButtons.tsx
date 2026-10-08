@@ -22,7 +22,8 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setFullUrl(window.location.href);
-      setCanNativeShare(typeof navigator !== 'undefined' && !!navigator.share);
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      setCanNativeShare(isMobileDevice && typeof navigator !== 'undefined' && !!navigator.share);
     }
   }, [url]);
 
@@ -117,7 +118,7 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
           title="Abrir opciones de envío del dispositivo"
         >
           <Share2 className="w-3.5 h-3.5" />
-          <span>Enviar desde móvil</span>
+          <span>Compartir</span>
         </Button>
       )}
 

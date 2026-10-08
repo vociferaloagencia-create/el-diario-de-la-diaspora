@@ -13,7 +13,6 @@ import { ShareButtons } from "@/components/site/ShareButtons";
 import { PopupAd } from './PopupAd';
 import { trackAdClick } from '@/lib/firestore';
 import Link from 'next/link';
-import { ArticleComments } from "@/components/site/ArticleComments";
 import { User, Printer, Share2, Clock, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -240,9 +239,6 @@ export function ArticlePageClient({ article, author, settings, category, related
                         url={`/articles/${article.slug}`}
                         title={article.title}
                     />
-
-                    {/* Sección de Comentarios de Lectores (Solicitada por la clienta) */}
-                    <ArticleComments articleSlug={article.slug} />
                   </div>
               </article>
           </div>
