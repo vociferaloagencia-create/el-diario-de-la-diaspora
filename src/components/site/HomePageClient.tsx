@@ -52,19 +52,8 @@ export function HomePageClient({
   mostReadArticles, 
   settings 
 }: HomePageClientProps) {
-  const [reels, setReels] = useState<Reel[]>([]);
-
-  useEffect(() => {
-    const fetchReels = async () => {
-      try {
-        const reelsData = await getAllReels();
-        setReels(reelsData.slice(0, 3));
-      } catch (e) {
-        setReels([]);
-      }
-    };
-    fetchReels();
-  }, []);
+  // Estado y consulta de reels pausados mientras la sección permanezca oculta
+  const [reels] = useState<Reel[]>([]);
 
   const adTop = settings?.ads?.sidebarMiddle;
   const adBottom = settings?.ads?.sidebarBottom;
@@ -143,7 +132,7 @@ export function HomePageClient({
               />
             )}
 
-            {reels.length > 0 && <ReelsWidget reels={reels} />}
+            {/* Bloque de Reels destacado temporalmente oculto a solicitud del cliente */}
 
             <WeatherWidget />
 
