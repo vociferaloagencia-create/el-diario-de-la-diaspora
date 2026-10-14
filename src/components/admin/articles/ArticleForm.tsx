@@ -88,6 +88,24 @@ const formatDatetimeForInput = (val: any): string => {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
+
+const DIASPORA_COUNTRIES = [
+  { name: 'República Dominicana', slug: 'republica-dominicana' },
+  { name: 'México', slug: 'mexico' },
+  { name: 'Brasil', slug: 'brasil' },
+  { name: 'República de Chile', slug: 'chile' },
+  { name: 'Cuba', slug: 'cuba' },
+  { name: 'Bahamas', slug: 'bahamas' },
+  { name: 'Venezuela', slug: 'venezuela' },
+  { name: 'EE.UU.', slug: 'eeuu' },
+  { name: 'Canadá', slug: 'canada' },
+  { name: 'Francia', slug: 'francia' },
+  { name: 'España', slug: 'espana' },
+  { name: 'Argentina', slug: 'argentina' },
+  { name: 'Guayana Francesa', slug: 'guayana-francesa' },
+  { name: 'Suiza', slug: 'suiza' },
+];
+
 interface ArticleFormProps {
   article: Partial<Article>;
   categories: Category[];
@@ -152,6 +170,22 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
       });
     }
     setTagInput("");
+  };
+
+  
+  const [selectedSecondaryCategories, setSelectedSecondaryCategories] = useState<string[]>(() => {
+    if (article.categoryIds && Array.isArray(article.categoryIds)) {
+      return article.categoryIds.filter(id => id !== article.categoryId);
+    }
+    return [];
+  });
+
+  const removeTagByIndex = (indexToRemove: number) => {
+    setTags(prev => prev.filter((_, idx) => idx !== indexToRemove));
+    if (editingTagIndex !== null) {
+      setEditingTagIndex(null);
+      setEditingTagValue("");
+    }
   };
 
   const removeTag = (tag: string) => {
@@ -337,6 +371,11 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
         summary: values.summary,
         content: contentWithParagraphs,
         categoryId: values.categoryId,
+        categoryIds: Array.from(new Set([
+          values.categoryId,
+          ...selectedSecondaryCategories,
+          ...(selectedSecondaryCategories.some(id => DIASPORA_COUNTRIES.some(dc => dc.slug === id)) ? ['la-diaspora'] : [])
+        ].filter(Boolean))),
         subCategoryId: null,
         authorId: userProfile.uid,
         authorName: values.authorName?.trim() || userProfile.name || 'Redacción El Diario de la Diáspora',
@@ -355,7 +394,10 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
           const words = cleanText ? cleanText.split(/\s+/).filter(Boolean).length : 0;
           return Math.max(1, Math.ceil(words / 200));
         })(),
-        tags: tags,
+        tags: Array.from(new Set([
+          ...tags,
+          ...selectedSecondaryCategories,
+        ])),
         allowComments: values.allowComments,
         isMainHero: values.isMainHero,
         showOnMostRead: article.showOnMostRead || false, // Retain existing value
@@ -513,24 +555,30 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5"/> Información</CardTitle>
+                    <CardTitle className="flex items-center gap-2"><Info className="h-5 w-5"/> Categorías y Diáspora</CardTitle>
+                    <CardDescription>Elige la categoría principal y las adicionales o países correspondientes.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <FormField control={form.control} name="categoryId" render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Categoría</FormLabel>
+                        <FormLabel>Categoría Principal</FormLabel>
                         <div className="flex gap-2">
                             <Select onValueChange={field.onChange} value={field.value}>
                                 <FormControl><SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger></FormControl>
                                 <SelectContent>
+                                <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase">Secciones Generales</div>
                                 {categories.map(cat => (
                                     <SelectItem key={cat._id} value={cat.slug}>{cat.name}</SelectItem>
+                                ))}
+                                <div className="px-2 py-1.5 text-xs font-bold text-muted-foreground uppercase mt-2 border-t pt-2">Países de la Diáspora</div>
+                                {DIASPORA_COUNTRIES.map(c => (
+                                    <SelectItem key={c.slug} value={c.slug}>{c.name}</SelectItem>
                                 ))}
                                 </SelectContent>
                             </Select>
                             <Dialog open={isAddCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="outline" size="icon"><PlusCircle className="h-4 w-4"/></Button>
+                                    <Button variant="outline" size="icon" title="Crear nueva categoría"><PlusCircle className="h-4 w-4"/></Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
@@ -553,6 +601,96 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                         <FormMessage />
                         </FormItem>
                     )} />
+
+                    {/* Categorías adicionales y Países de la Diáspora (Selección Múltiple) */}
+                    <div className="space-y-2 pt-2 border-t">
+                      <FormLabel className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Categorías Adicionales / Países de la Diáspora (Múltiples)
+                      </FormLabel>
+                      <p className="text-xs text-muted-foreground">Toca para añadir más secciones o países donde aparecerá esta noticia:</p>
+                      
+                      {/* Chips seleccionados */}
+                      {selectedSecondaryCategories.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 p-2 rounded-lg bg-primary/5 border border-primary/20">
+                          {selectedSecondaryCategories.map(catSlug => {
+                            const foundCat = categories.find(c => c.slug === catSlug) || DIASPORA_COUNTRIES.find(c => c.slug === catSlug);
+                            const name = foundCat?.name || catSlug;
+                            return (
+                              <span key={catSlug} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary text-white shadow-2xs">
+                                <span>{name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedSecondaryCategories(prev => prev.filter(s => s !== catSlug))}
+                                  className="hover:text-red-200 transition-colors ml-0.5 cursor-pointer"
+                                  title="Quitar categoría"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Lista desplegable / selectores rápidos por grupo */}
+                      <div className="space-y-2 mt-2">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Países de la Diáspora:</div>
+                        <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1">
+                          {DIASPORA_COUNTRIES.map(country => {
+                            const isSelected = selectedSecondaryCategories.includes(country.slug) || form.watch('categoryId') === country.slug;
+                            return (
+                              <button
+                                key={country.slug}
+                                type="button"
+                                disabled={form.watch('categoryId') === country.slug}
+                                onClick={() => {
+                                  setSelectedSecondaryCategories(prev =>
+                                    prev.includes(country.slug)
+                                      ? prev.filter(s => s !== country.slug)
+                                      : [...prev, country.slug]
+                                  );
+                                }}
+                                className={`px-2.5 py-1 rounded-full text-xs transition-colors border cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-primary text-white border-primary font-bold'
+                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted border-border'
+                                }`}
+                              >
+                                {country.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground pt-1">Otras Secciones:</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {categories.map(cat => {
+                            const isSelected = selectedSecondaryCategories.includes(cat.slug) || form.watch('categoryId') === cat.slug;
+                            return (
+                              <button
+                                key={cat.slug}
+                                type="button"
+                                disabled={form.watch('categoryId') === cat.slug}
+                                onClick={() => {
+                                  setSelectedSecondaryCategories(prev =>
+                                    prev.includes(cat.slug)
+                                      ? prev.filter(s => s !== cat.slug)
+                                      : [...prev, cat.slug]
+                                  );
+                                }}
+                                className={`px-2.5 py-1 rounded-full text-xs transition-colors border cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-primary text-white border-primary font-bold'
+                                    : 'bg-muted/50 text-muted-foreground hover:bg-muted border-border'
+                                }`}
+                              >
+                                {cat.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -684,8 +822,9 @@ export function ArticleForm({ article, categories: initialCategories }: ArticleF
                           aria-label={`Eliminar etiqueta #${tag}`}
                           title="Eliminar esta etiqueta"
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
-                            removeTag(tag);
+                            removeTagByIndex(idx);
                           }}
                           className="w-6 h-6 rounded-full flex items-center justify-center text-primary/70 hover:text-white hover:bg-destructive transition-colors touch-manipulation ml-0.5"
                         >

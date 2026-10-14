@@ -397,13 +397,15 @@ export async function getLatestArticles(limitCount: number = 50): Promise<Articl
 export async function getArticlesByCategory(categorySlug: string): Promise<Article[]> {
   if (isIsolatedMode) return [];
   try {
-    const q = query(
-      collection(db, "articles"),
-      where("categoryId", "==", categorySlug)
-    );
-    const snapshot = await withTimeout(getDocs(q), 2000);
-    const articles = snapshot.docs.map(d => serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
-    return articles
+    const [snap1, snap2] = await Promise.all([
+      withTimeout(getDocs(query(collection(db, "articles"), where("categoryId", "==", categorySlug))), 2500).catch(() => ({ docs: [] })),
+      withTimeout(getDocs(query(collection(db, "articles"), where("categoryIds", "array-contains", categorySlug))), 2500).catch(() => ({ docs: [] })),
+    ]);
+    const map = new Map<string, Article>();
+    [...snap1.docs, ...snap2.docs].forEach(d => {
+      map.set(d.id, serializeFirestoreDoc({ _id: d.id, ...d.data() }) as Article);
+    });
+    return Array.from(map.values())
       .filter(a => a.status === 'published')
       .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   } catch (error) {

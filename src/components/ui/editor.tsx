@@ -5,6 +5,7 @@ import {
   Bold,
   Italic,
   Underline,
+  Strikethrough,
   List,
   ListOrdered,
   Image as ImageIcon,
@@ -14,6 +15,12 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  AlignJustify,
+  Quote,
+  Minus,
+  Eraser,
+  Undo,
+  Redo,
   Trash2,
   Maximize2,
   Minimize2,
@@ -28,6 +35,7 @@ import {
 } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import UnderlineExtension from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
 import ImageExtension from '@tiptap/extension-image';
 import { Toggle } from './toggle';
 import { Button } from './button';
@@ -284,6 +292,47 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
     editor.chain().focus().toggleOrderedList().run();
   }, [editor]);
 
+  const toggleStrike = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().toggleStrike().run();
+  }, [editor]);
+  const toggleBlockquote = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().toggleBlockquote().run();
+  }, [editor]);
+  const setHorizontalRule = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().setHorizontalRule().run();
+  }, [editor]);
+  const setAlignLeft = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign('left').run();
+  }, [editor]);
+  const setAlignCenter = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign('center').run();
+  }, [editor]);
+  const setAlignRight = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign('right').run();
+  }, [editor]);
+  const setAlignJustify = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign('justify').run();
+  }, [editor]);
+  const clearFormatting = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().clearNodes().unsetAllMarks().run();
+  }, [editor]);
+  const undo = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().undo().run();
+  }, [editor]);
+  const redo = useCallback(() => {
+    if (!editor) return;
+    editor.chain().focus().redo().run();
+  }, [editor]);
+
   if (!editor) {
     return null;
   }
@@ -291,33 +340,108 @@ const Toolbar = ({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) => 
   return (
     <div className="border border-input bg-card/60 backdrop-blur-sm rounded-t-md p-2 flex items-center justify-between gap-1 flex-wrap">
       <div className="flex items-center gap-1 flex-wrap">
-        <Toggle size="sm" pressed={editor.isActive('bold')} onPressedChange={toggleBold}>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={undo}
+          disabled={!editor.can().undo()}
+          title="Deshacer (Ctrl+Z)"
+        >
+          <Undo className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={redo}
+          disabled={!editor.can().redo()}
+          title="Rehacer (Ctrl+Y)"
+        >
+          <Redo className="h-4 w-4" />
+        </Button>
+
+        <div className="h-5 w-px bg-border mx-0.5" />
+
+        <Toggle size="sm" pressed={editor.isActive('bold')} onPressedChange={toggleBold} title="Negrita (Ctrl+B)">
           <Bold className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('italic')} onPressedChange={toggleItalic}>
+        <Toggle size="sm" pressed={editor.isActive('italic')} onPressedChange={toggleItalic} title="Cursiva (Ctrl+I)">
           <Italic className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('underline')} onPressedChange={toggleUnderline}>
+        <Toggle size="sm" pressed={editor.isActive('underline')} onPressedChange={toggleUnderline} title="Subrayado (Ctrl+U)">
           <Underline className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('heading', { level: 1 })} onPressedChange={toggleH1}>
+        <Toggle size="sm" pressed={editor.isActive('strike')} onPressedChange={toggleStrike} title="Tachado">
+          <Strikethrough className="h-4 w-4" />
+        </Toggle>
+
+        <div className="h-5 w-px bg-border mx-0.5" />
+
+        <Toggle size="sm" pressed={editor.isActive('heading', { level: 1 })} onPressedChange={toggleH1} title="Título Grande (H1)">
           <Heading1 className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('heading', { level: 2 })} onPressedChange={toggleH2}>
+        <Toggle size="sm" pressed={editor.isActive('heading', { level: 2 })} onPressedChange={toggleH2} title="Subtítulo (H2)">
           <Heading2 className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('heading', { level: 3 })} onPressedChange={toggleH3}>
+        <Toggle size="sm" pressed={editor.isActive('heading', { level: 3 })} onPressedChange={toggleH3} title="Encabezado Menor (H3)">
           <Heading3 className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('bulletList')} onPressedChange={toggleBulletList}>
+
+        <div className="h-5 w-px bg-border mx-0.5" />
+
+        <Toggle size="sm" pressed={editor.isActive({ textAlign: 'left' })} onPressedChange={setAlignLeft} title="Alinear a la izquierda">
+          <AlignLeft className="h-4 w-4" />
+        </Toggle>
+        <Toggle size="sm" pressed={editor.isActive({ textAlign: 'center' })} onPressedChange={setAlignCenter} title="Centrar texto">
+          <AlignCenter className="h-4 w-4" />
+        </Toggle>
+        <Toggle size="sm" pressed={editor.isActive({ textAlign: 'right' })} onPressedChange={setAlignRight} title="Alinear a la derecha">
+          <AlignRight className="h-4 w-4" />
+        </Toggle>
+        <Toggle size="sm" pressed={editor.isActive({ textAlign: 'justify' })} onPressedChange={setAlignJustify} title="Justificar texto">
+          <AlignJustify className="h-4 w-4" />
+        </Toggle>
+
+        <div className="h-5 w-px bg-border mx-0.5" />
+
+        <Toggle size="sm" pressed={editor.isActive('bulletList')} onPressedChange={toggleBulletList} title="Lista con viñetas">
           <List className="h-4 w-4" />
         </Toggle>
-        <Toggle size="sm" pressed={editor.isActive('orderedList')} onPressedChange={toggleOrderedList}>
+        <Toggle size="sm" pressed={editor.isActive('orderedList')} onPressedChange={toggleOrderedList} title="Lista numerada">
           <ListOrdered className="h-4 w-4" />
         </Toggle>
+        <Toggle size="sm" pressed={editor.isActive('blockquote')} onPressedChange={toggleBlockquote} title="Cita periodística destacada">
+          <Quote className="h-4 w-4" />
+        </Toggle>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={setHorizontalRule}
+          title="Insertar línea divisoria"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-8 w-8 p-0"
+          onClick={clearFormatting}
+          title="Limpiar formato"
+        >
+          <Eraser className="h-4 w-4" />
+        </Button>
+
+        <div className="h-5 w-px bg-border mx-0.5" />
+
         <label
           htmlFor="article-editor-image-upload"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer select-none transition-colors"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-2.5 cursor-pointer select-none transition-colors"
           title="Insertar foto dentro del texto"
         >
           <ImageIcon className="h-4 w-4 pointer-events-none" />
@@ -371,12 +495,15 @@ export const Editor = ({ value, onChange }: EditorProps) => {
         heading: {
           levels: [1, 2, 3],
         },
-        strike: false,
-        blockquote: false,
+        strike: true,
+        blockquote: true,
         codeBlock: false,
-        horizontalRule: false,
+        horizontalRule: true,
       }),
       UnderlineExtension,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
       ResizableImage,
     ],
     content: value,

@@ -218,6 +218,7 @@ export type Article = WithSerialization<{
   summary: string;
   content: string;
   categoryId: string;
+  categoryIds?: string[];
   subCategoryId: string | null;
   authorId: string;
   authorName?: string;

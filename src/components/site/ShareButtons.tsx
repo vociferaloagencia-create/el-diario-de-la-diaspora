@@ -103,11 +103,6 @@ export function ShareButtons({ url, title }: ShareButtonsProps) {
 
   return (
     <div className="flex flex-wrap items-center gap-2.5 my-8 p-3 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-      <span className="font-bold text-xs text-slate-700 dark:text-slate-300 mr-2 flex items-center gap-1.5">
-        <Share2 className="w-4 h-4 text-primary" />
-        Difundir noticia:
-      </span>
-
       {/* Botón Compartir Nativo (Ideal para iPhone / Android) */}
       {canNativeShare && (
         <Button

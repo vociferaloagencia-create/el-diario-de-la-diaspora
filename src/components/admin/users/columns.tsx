@@ -97,19 +97,13 @@ const CellActions = ({ user }: { user: UserForTable }) => {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                         <DropdownMenuSubContent>
-                            {isSuperAdmin && (
-                                <DropdownMenuItem onClick={() => handleChangeRole('superadmin')} disabled={user.role === 'superadmin'} className="gap-2 text-red-600 focus:text-red-700">
-                                    <ShieldAlert className="h-3.5 w-3.5" />
-                                    Super Admin y Columnista
-                                </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem onClick={() => handleChangeRole('admin')} disabled={user.role === 'admin' || user.role === 'superadmin'} className="gap-2 font-semibold">
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Administrador (Control Total)
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangeRole('columnista')} disabled={user.role === 'columnista'} className="gap-2 text-blue-600 focus:text-blue-700">
                                 <PenTool className="h-3.5 w-3.5" />
                                 Columnista
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleChangeRole('admin')} disabled={user.role === 'admin'} className="gap-2">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                Administrador
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleChangeRole('editor')} disabled={user.role === 'editor'} className="gap-2">
                                 <User className="h-3.5 w-3.5" />
@@ -185,11 +179,11 @@ export const columns: ColumnDef<UserForTable>[] = [
     cell: ({ row }) => {
         const role = row.getValue("role") as string;
         
-        if (role === 'superadmin') {
+        if (role === 'superadmin' || role === 'admin') {
           return (
-            <Badge variant="destructive" className="gap-1.5 text-xs bg-red-600 hover:bg-red-700 text-white font-medium">
-              <ShieldAlert className="h-3 w-3" />
-              Superadministrador y Columnista
+            <Badge variant="default" className="gap-1.5 text-xs font-semibold bg-primary text-white">
+              <ShieldCheck className="h-3 w-3" />
+              Administrador
             </Badge>
           );
         }
@@ -198,14 +192,6 @@ export const columns: ColumnDef<UserForTable>[] = [
             <Badge variant="secondary" className="gap-1.5 text-xs bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-medium">
               <PenTool className="h-3 w-3 text-blue-600 dark:text-blue-400" />
               Columnista
-            </Badge>
-          );
-        }
-        if (role === 'admin') {
-          return (
-            <Badge variant="default" className="gap-1.5 text-xs font-medium">
-              <ShieldCheck className="h-3 w-3" />
-              Administrador
             </Badge>
           );
         }

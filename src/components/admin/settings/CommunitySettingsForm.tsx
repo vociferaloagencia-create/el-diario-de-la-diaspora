@@ -63,13 +63,13 @@ export function CommunitySettingsForm({ initialData }: CommunitySettingsFormProp
       bannerImage: initialData?.bannerImage || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop",
       logoUrl: initialData?.logoUrl || "/logo-footer-white.png",
       logoHeight: initialData?.logoHeight ?? 110,
-      values: initialData?.values && initialData.values.length > 0 ? initialData.values : [
+      values: initialData?.values !== undefined ? initialData.values : [
         { title: "Unidad", desc: "Trabajamos juntos como una familia para traer la verdad a nuestra gente." },
         { title: "Pasión", desc: "Cada historia se cuenta con el corazón y el respeto que merece la diáspora." },
         { title: "Compromiso", desc: "Nuestra meta diaria es informar con objetividad, rapidez y precisión." },
         { title: "Vocación", desc: "El periodismo no es solo un trabajo para nosotros, es nuestro estilo de vida." },
       ],
-      gallery: initialData?.gallery && initialData.gallery.length > 0 ? initialData.gallery : defaultGallery,
+      gallery: initialData?.gallery !== undefined ? initialData.gallery : defaultGallery,
     },
   });
 

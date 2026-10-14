@@ -151,11 +151,11 @@ export function ArticlePageClient({ article, author, settings, category, related
                               variant="ghost"
                               size="sm"
                               onClick={handleShare}
-                              className="h-8 px-2.5 text-xs text-slate-600 dark:text-slate-300 hover:text-primary gap-1.5"
+                              className="h-8 px-2 text-xs text-slate-600 dark:text-slate-300 hover:text-primary gap-1.5"
                               title="Compartir noticia"
+                              aria-label="Compartir noticia"
                             >
                               <Share2 className="w-3.5 h-3.5 text-primary" />
-                              <span className="hidden md:inline font-semibold">Compartir</span>
                             </Button>
 
                             {canEdit && (
@@ -196,21 +196,12 @@ export function ArticlePageClient({ article, author, settings, category, related
                     </div>
                   ) : article.heroImageUrl && (
                       <figure className="mb-8">
-                        <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-950 flex items-center justify-center min-h-[280px] max-h-[580px]">
-                          {/* Fondo ambiental difuminado para armonizar márgenes laterales */}
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={article.heroImageUrl}
-                            alt=""
-                            aria-hidden="true"
-                            className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-25 scale-110 pointer-events-none"
-                          />
-                          {/* Imagen principal íntegra sin ningún recorte */}
+                        <div className="relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-100 dark:bg-slate-900">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={article.heroImageUrl}
                             alt={article.title}
-                            className="relative z-10 w-full h-auto max-h-[580px] object-contain mx-auto"
+                            className="w-full h-auto max-h-[580px] object-cover mx-auto"
                           />
                         </div>
                         {article.imageCaption && (

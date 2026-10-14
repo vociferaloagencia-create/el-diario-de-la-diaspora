@@ -138,7 +138,7 @@ export default function ProfilePage() {
                 <p className="text-muted-foreground">{userProfile.email}</p>
                 <Badge variant={userProfile.role === 'admin' || userProfile.role === 'superadmin' ? 'default' : 'secondary'} className="mt-1 capitalize gap-1.5">
                   <Shield className="h-3 w-3" />
-                  {userProfile.role === 'admin' ? 'Administrador' : userProfile.role === 'editor' ? 'Editor' : userProfile.role === 'superadmin' ? 'Super Administrador' : 'Lector'}
+                  {userProfile.role === 'admin' || userProfile.role === 'superadmin' ? 'Administrador' : userProfile.role === 'editor' ? 'Editor' : userProfile.role === 'columnista' ? 'Columnista' : 'Lector'}
                 </Badge>
             </div>
           </div>

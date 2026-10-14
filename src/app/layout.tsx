@@ -7,13 +7,29 @@ import { AuthProvider } from '@/hooks/use-auth';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const siteName = settings?.branding?.siteName || 'El Diario de la Diáspora';
+  const rawTagline = settings?.branding?.tagline || 'Información independiente.';
+  const description = rawTagline.replace(/de la comunidad hispana e internacional/gi, '').trim() || 'Información independiente.';
+  const fixedTitle = 'El Diario de la Diáspora: Últimas Noticias';
+  const siteName = 'El Diario de la Diáspora';
+
   return {
     title: {
-      default: `${siteName}: Últimas Noticias`,
+      default: fixedTitle,
       template: `%s | ${siteName}`,
     },
-    description: settings?.branding?.tagline || 'Información independiente.',
+    description,
+    openGraph: {
+      title: fixedTitle,
+      description,
+      siteName,
+      type: 'website',
+      locale: 'es_ES',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: fixedTitle,
+      description,
+    },
     icons: {
       icon: [
         { url: '/favicon.ico', sizes: 'any' },

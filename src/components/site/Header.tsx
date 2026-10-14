@@ -132,7 +132,7 @@ export function Header({ settings, categories }: HeaderProps) {
         <div className="flex items-center justify-between gap-4">
           
           {/* Izquierda: Menu Movil + Fecha formal */}
-          <div className="flex items-center gap-2 lg:gap-4 flex-1">
+          <div className="flex items-center gap-2 lg:gap-4 flex-none sm:flex-1">
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative z-50 hover:bg-slate-100 dark:hover:bg-slate-900">
@@ -318,8 +318,8 @@ export function Header({ settings, categories }: HeaderProps) {
           </div>
 
           {/* Centro: LOGO OFICIAL AMPLIO, DESTACADO Y GRUESO */}
-          <div className="flex items-center justify-center flex-1 py-1 shrink-0">
-            <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01] px-2">
+          <div className="flex items-center justify-center flex-1 py-1 min-w-0">
+            <Link href="/" className="inline-flex items-center transition-transform hover:scale-[1.01] px-1 max-w-[260px] sm:max-w-none">
               <Image
                 src={settings?.branding?.logoUrl || "/logo-horizontal.png"}
                 alt={settings?.branding?.siteName || "El Diario de la Diáspora"}
@@ -327,16 +327,16 @@ export function Header({ settings, categories }: HeaderProps) {
                 height={140}
                 priority
                 style={{ height: `${settings?.branding?.logoHeight || 60}px`, width: 'auto' }}
-                className="w-auto max-w-full object-contain dark:brightness-125 drop-shadow-xs"
+                className="w-auto h-auto max-h-[48px] sm:max-h-[64px] max-w-full object-contain dark:brightness-125 drop-shadow-xs"
               />
             </Link>
           </div>
 
           {/* Derecha: Selector 4 Idiomas + Buscar + Boton SUSCRÍBETE + Perfil */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-1">
+          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-none sm:flex-1">
             
             {/* SELECTOR DE IDIOMA */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 mr-1 sm:mr-2 shadow-2xs">
+            <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-lg p-0.5 mr-1 sm:mr-2 shadow-2xs">
               {LANGUAGES_LIST.map((item) => (
                 <button
                   key={item.code}
