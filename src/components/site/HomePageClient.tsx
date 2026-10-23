@@ -97,13 +97,29 @@ export function HomePageClient({
             )}
           </div>
 
-          {/* 2. COLUMNA LATERAL DERECHA: Lo más leído y Clima en Vivo (Cero anuncios no deseados) */}
+          {/* 2. COLUMNA LATERAL DERECHA: Lo más leído, Anuncios (Banner limpio sin textos) y Clima */}
           <aside className="col-span-12 lg:col-span-4 xl:col-span-3.5 flex flex-col gap-6 sticky top-24 h-fit">
             {mostReadArticles && mostReadArticles.length > 0 && (
               <MostReadList items={mostReadArticles.map(a => ({ title: a.title, href: `/articles/${a.slug}` }))} />
             )}
 
+            {adTop?.enabled && adTop.imageUrl && (
+              <SideHighlightAd
+                imageUrl={adTop.imageUrl}
+                linkUrl={adTop.linkUrl || '#'}
+                onAdClick={() => handleAdClick('sidebarMiddle', adTop.linkUrl!)}
+              />
+            )}
+
             <WeatherWidget />
+
+            {adBottom?.enabled && adBottom.imageUrl && (
+              <SideHighlightAd
+                imageUrl={adBottom.imageUrl}
+                linkUrl={adBottom.linkUrl || '#'}
+                onAdClick={() => handleAdClick('sidebarBottom', adBottom.linkUrl!)}
+              />
+            )}
           </aside>
         </div>
 

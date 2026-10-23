@@ -179,6 +179,28 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 {mostReadArticles && mostReadArticles.length > 0 && (
                   <MostReadList items={mostReadArticles.map(a => ({ title: a.title, href: `/articles/${a.slug}` }))} />
                 )}
+
+                {adTop?.enabled && adTop.imageUrl && (
+                    <SideHighlightAd
+                        imageUrl={adTop.imageUrl}
+                        linkUrl={adTop.linkUrl || '#'}
+                        onAdClick={async () => {
+                          'use server';
+                          if(adTop.linkUrl) await handleAdClick('sidebarMiddle', adTop.linkUrl);
+                        }}
+                    />
+                )}
+
+                {adBottom?.enabled && adBottom.imageUrl && (
+                     <SideHighlightAd
+                        imageUrl={adBottom.imageUrl}
+                        linkUrl={adBottom.linkUrl || '#'}
+                         onAdClick={async () => {
+                          'use server';
+                          if(adBottom.linkUrl) await handleAdClick('sidebarBottom', adBottom.linkUrl);
+                        }}
+                    />
+                )}
             </aside>
         </div>
 

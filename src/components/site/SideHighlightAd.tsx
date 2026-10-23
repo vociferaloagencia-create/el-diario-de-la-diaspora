@@ -4,7 +4,7 @@
 import Image from "next/image";
 
 interface SideHighlightAdProps {
-    title: string;
+    title?: string;
     imageUrl: string;
     linkUrl: string;
     onAdClick?: () => void;
@@ -24,7 +24,7 @@ export function SideHighlightAd({ title, imageUrl, linkUrl, onAdClick }: SideHig
       href={linkUrl}
       target="_blank" 
       rel="noopener noreferrer" 
-      className="group flex flex-col gap-2 rounded-xl overflow-hidden"
+      className="group flex flex-col rounded-xl overflow-hidden"
       onClick={handleClick}
     >
       <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-sm border border-slate-200/80 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group-hover:shadow-md transition-all">
@@ -43,11 +43,6 @@ export function SideHighlightAd({ title, imageUrl, linkUrl, onAdClick }: SideHig
         <span className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-[10px] uppercase font-bold text-white px-2 py-0.5 rounded tracking-widest">
           Patrocinado
         </span>
-      </div>
-      <div className="flex flex-col gap-1">
-        <h3 className="font-serif font-bold text-sm leading-tight text-slate-800 dark:text-slate-200 group-hover:text-primary dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-          {title}
-        </h3>
       </div>
     </a>
   );
