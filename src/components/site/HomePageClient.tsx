@@ -97,33 +97,13 @@ export function HomePageClient({
             )}
           </div>
 
-          {/* 2. COLUMNA LATERAL DERECHA (4 a 3.5 de 12 cols): Lo más leído, Reels, Anuncios y Clima */}
+          {/* 2. COLUMNA LATERAL DERECHA: Lo más leído y Clima en Vivo (Cero anuncios no deseados) */}
           <aside className="col-span-12 lg:col-span-4 xl:col-span-3.5 flex flex-col gap-6 sticky top-24 h-fit">
             {mostReadArticles && mostReadArticles.length > 0 && (
               <MostReadList items={mostReadArticles.map(a => ({ title: a.title, href: `/articles/${a.slug}` }))} />
             )}
 
-            {adTop?.enabled && adTop.imageUrl && (
-              <SideHighlightAd
-                title={adTop.label || 'Vuelos y Turismo en el Caribe'}
-                imageUrl={adTop.imageUrl}
-                linkUrl={adTop.linkUrl || '#'}
-                onAdClick={() => handleAdClick('sidebarMiddle', adTop.linkUrl!)}
-              />
-            )}
-
-            {/* Bloque de Reels destacado temporalmente oculto a solicitud del cliente */}
-
             <WeatherWidget />
-
-            {adBottom?.enabled && adBottom.imageUrl && (
-              <SideHighlightAd
-                title={adBottom.label || 'Banca y Remesas Internacionales'}
-                imageUrl={adBottom.imageUrl}
-                linkUrl={adBottom.linkUrl || '#'}
-                onAdClick={() => handleAdClick('sidebarBottom', adBottom.linkUrl!)}
-              />
-            )}
           </aside>
         </div>
 

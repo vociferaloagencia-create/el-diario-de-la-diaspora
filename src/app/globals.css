@@ -220,3 +220,138 @@ body:has(.dashboard-wrapper) {
   overflow: hidden !important;
   height: 100vh !important;
 }
+
+/* ==========================================================================
+   ESTILOS EDITORIALES DE ALTA PRECISIÓN PARA IMPRESIÓN (@media print)
+   ========================================================================== */
+.print-only {
+  display: none !important;
+}
+
+@media print {
+  @page {
+    margin: 1.5cm 1.2cm 1.5cm 1.2cm;
+    size: auto;
+  }
+
+  /* 1. Ocultar todos los elementos web de navegación, anuncios e interactivos */
+  header,
+  footer,
+  nav,
+  aside,
+  .no-print,
+  #cookie-consent,
+  .cookie-consent,
+  [role="dialog"],
+  .breaking-news-ticker,
+  .fixed,
+  button,
+  form,
+  iframe,
+  video {
+    display: none !important;
+  }
+
+  /* 2. Mostrar elementos exclusivos de edición impresa */
+  .print-only {
+    display: block !important;
+  }
+
+  /* 3. Fondo blanco puro y tinta negra editorial de alto contraste */
+  html,
+  body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Desactivar fondos oscuros, gradientes y sombras al imprimir */
+  * {
+    color: #111827 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* 4. Expansión completa del ancho de página (cero columnas rotas o aplastadas) */
+  main,
+  article,
+  .col-span-12,
+  .col-span-8,
+  .max-w-\[1600px\] {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    float: none !important;
+  }
+
+  div.grid {
+    display: block !important;
+  }
+
+  /* 5. Tipografía editorial de periódico */
+  h1, h2, h3, h4 {
+    color: #000000 !important;
+    font-family: 'Newsreader', Georgia, Cambria, serif !important;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  h1 {
+    font-size: 25pt !important;
+    line-height: 1.15 !important;
+    margin-bottom: 0.6rem !important;
+    font-weight: 800 !important;
+  }
+
+  p {
+    font-size: 11pt !important;
+    line-height: 1.65 !important;
+    color: #1f2937 !important;
+    margin-bottom: 0.8rem !important;
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* 6. Tratamiento fotográfico y pies de foto */
+  figure {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin: 1rem 0 !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 420px !important;
+    object-fit: contain !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  figcaption {
+    color: #4b5563 !important;
+    font-size: 9pt !important;
+    font-style: italic !important;
+    margin-top: 0.3rem !important;
+    text-align: center !important;
+  }
+
+  /* 7. Bloques y citas editoriales sin corte abrupto */
+  blockquote {
+    border-left: 3px solid #000000 !important;
+    padding-left: 1rem !important;
+    margin: 1rem 0 !important;
+    font-style: italic !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

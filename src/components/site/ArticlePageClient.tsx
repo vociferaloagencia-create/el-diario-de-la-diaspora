@@ -77,15 +77,39 @@ export function ArticlePageClient({ article, author, settings, category, related
   return (
     <>
       {settings.ads?.popup?.enabled && settings.ads.popup.imageUrl && (
-        <PopupAd ad={settings.ads.popup} onAdClick={handleAdClick} />
+        <div className="no-print">
+          <PopupAd ad={settings.ads.popup} onAdClick={handleAdClick} />
+        </div>
       )}
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-12 gap-8 items-start">
           <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
               <article>
+                  {/* CABECERA EDITORIAL DE PRENSA EXCLUSIVA PARA IMPRESIÓN */}
+                  <div className="print-only mb-6 pb-4 border-b-2 border-black">
+                    <div className="flex items-center justify-between pb-2 border-b border-black">
+                      <div>
+                        <div className="text-3xl font-serif font-black tracking-tight uppercase text-black m-0 p-0">
+                          El Diario de la Diáspora
+                        </div>
+                        <div className="text-[11px] font-serif uppercase tracking-widest text-slate-700 m-0 p-0 mt-0.5">
+                          Información Independiente Sin Fronteras
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs uppercase tracking-wider font-bold text-black block">
+                          Edición Impresa / Archivo
+                        </span>
+                        <span className="text-[10px] text-slate-600 font-mono capitalize">
+                          {format(new Date(article.publishedAt), "EEEE, d 'de' MMMM, yyyy", { locale: es })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
                   <header className="mb-8">
                       <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="secondary" className="bg-primary/10 text-primary font-bold uppercase tracking-wider text-xs px-3 py-1">
+                        <Badge variant="secondary" className="bg-primary/10 text-primary font-bold uppercase tracking-wider text-xs px-3 py-1 print:border print:border-black print:text-black print:bg-transparent">
                           Categoría: {category ? <TranslatedCategoryName name={category.name} /> : <TranslatedCategoryName name={article.categoryId ? article.categoryId.replace(/-/g, ' ') : 'Actualidad'} />}
                         </Badge>
                       </div>
@@ -129,8 +153,8 @@ export function ArticlePageClient({ article, author, settings, category, related
                           </div>
                         </div>
 
-                        {/* Barra de Herramientas: Compartir, Imprimir, Tiempo de Lectura */}
-                        <div className="flex items-center gap-2 flex-wrap border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200 dark:border-slate-800 shrink-0">
+                        {/* Barra de Herramientas: Compartir, Imprimir, Tiempo de Lectura (Oculta al imprimir) */}
+                        <div className="no-print flex items-center gap-2 flex-wrap border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-200 dark:border-slate-800 shrink-0">
                           <div className="flex items-center gap-1 bg-white dark:bg-slate-950 p-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-2xs">
                             {/* Imprimir Noticia */}
                             <Button
@@ -214,7 +238,7 @@ export function ArticlePageClient({ article, author, settings, category, related
 
                   <ArticleBody content={article.content} inArticleAd={settings.ads.inArticle} slug={article.slug} />
 
-                  <div className="clear-both w-full">
+                  <div className="clear-both w-full no-print">
                     {article.tags && article.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t">
                         {article.tags.map(tag => (
@@ -231,10 +255,17 @@ export function ArticlePageClient({ article, author, settings, category, related
                         title={article.title}
                     />
                   </div>
+
+                  {/* PIE EDITORIAL DE PRENSA EXCLUSIVO PARA IMPRESIÓN */}
+                  <div className="print-only mt-10 pt-4 border-t border-black text-center text-[10px] text-slate-600 font-serif">
+                    <p className="m-0 font-medium text-black">© {new Date().getFullYear()} El Diario de la Diáspora. Todos los derechos reservados.</p>
+                    <p className="m-0 italic mt-0.5 text-slate-600">Noticia original publicada y archivada digitalmente en: https://eldiariodeladiaspora.com/articles/{article.slug}</p>
+                  </div>
               </article>
           </div>
 
-          <div className="col-span-12 lg:col-span-4 sticky top-24 h-fit">
+          {/* Columna Lateral Derecha (Oculta al imprimir) */}
+          <div className="no-print col-span-12 lg:col-span-4 sticky top-24 h-fit">
               <ArticleSidebar 
                   ad_top={settings.ads.homeHeroSide}
                   ad_middle={settings.ads.sidebarMiddle}

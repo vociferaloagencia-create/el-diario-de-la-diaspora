@@ -174,34 +174,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               </section>
             </div>
 
-            {/* Columna Lateral Derecha (4 a 3.5 de 12 cols) */}
+            {/* Columna Lateral Derecha */}
             <aside className="col-span-12 lg:col-span-4 xl:col-span-3.5 flex flex-col gap-6 sticky top-24 h-fit">
                 {mostReadArticles && mostReadArticles.length > 0 && (
                   <MostReadList items={mostReadArticles.map(a => ({ title: a.title, href: `/articles/${a.slug}` }))} />
-                )}
-
-                {adTop?.enabled && adTop.imageUrl && (
-                    <SideHighlightAd
-                        title={adTop.label || 'Vuelos y Turismo en el Caribe'}
-                        imageUrl={adTop.imageUrl}
-                        linkUrl={adTop.linkUrl || '#'}
-                        onAdClick={async () => {
-                          'use server';
-                          if(adTop.linkUrl) await handleAdClick('sidebarMiddle', adTop.linkUrl);
-                        }}
-                    />
-                )}
-
-                {adBottom?.enabled && adBottom.imageUrl && (
-                     <SideHighlightAd
-                        title={adBottom.label || 'Banca y Remesas Internacionales'}
-                        imageUrl={adBottom.imageUrl}
-                        linkUrl={adBottom.linkUrl || '#'}
-                         onAdClick={async () => {
-                          'use server';
-                          if(adBottom.linkUrl) await handleAdClick('sidebarBottom', adBottom.linkUrl);
-                        }}
-                    />
                 )}
             </aside>
         </div>

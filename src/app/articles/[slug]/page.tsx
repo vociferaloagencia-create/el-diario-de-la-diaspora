@@ -68,9 +68,11 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header settings={settings} categories={categories.filter(c => c.isVisible).sort((a,b) => a.order - b.order)} />
-      <main className="mx-auto flex-grow py-6">
-        <div className="px-4 sm:px-6 lg:px-8">
+      <div className="no-print">
+        <Header settings={settings} categories={categories.filter(c => c.isVisible).sort((a,b) => a.order - b.order)} />
+      </div>
+      <main className="mx-auto flex-grow py-6 print:py-0 print:m-0 print:w-full">
+        <div className="px-4 sm:px-6 lg:px-8 print:p-0 print:m-0 print:w-full">
             <ArticlePageClient
               article={article}
               author={author}
@@ -83,7 +85,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </main>
       
       {settings.ads?.articleBottom?.enabled && settings.ads.articleBottom.imageUrl && (
-        <div className="px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8 no-print">
           <AdBannerClient
             ad={settings.ads.articleBottom} 
             adName="articleBottomBanner" 
@@ -93,7 +95,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         </div>
       )}
 
-      <Footer />
+      <div className="no-print">
+        <Footer />
+      </div>
     </div>
   );
 }
