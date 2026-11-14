@@ -35,6 +35,8 @@ export const LANGUAGES_LIST = [
 const SUPPORTED_LANGUAGES = new Set(Object.keys(LANG_CODE_MAP));
 let pendingTranslateObserver: MutationObserver | null = null;
 let pendingTranslateTimeout: number | null = null;
+let pendingLanguageRetryTimers: number[] = [];
+let activeLanguageRequest = 0;
 let translateElementInitialized = false;
 
 function readSavedLanguage(): SupportedLanguage {
@@ -69,46 +71,87 @@ function writeGoogleTranslateCookie(targetCode: string) {
 }
 
 function applyGoogleTranslateLanguage(targetCode: string, forceChange = false) {
+  const requestId = ++activeLanguageRequest;
   pendingTranslateObserver?.disconnect();
   if (pendingTranslateTimeout !== null) {
     window.clearTimeout(pendingTranslateTimeout);
     pendingTranslateTimeout = null;
   }
+  for (const timer of pendingLanguageRetryTimers) {
+    window.clearTimeout(timer);
+  }
+  pendingLanguageRetryTimers = [];
 
-  const applyWhenReady = () => {
+  let retries = 0;
+
+  const dispatchChange = (force: boolean) => {
+    if (requestId !== activeLanguageRequest) {
+      return false;
+    }
+
     const select = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
     if (!select || !Array.from(select.options).some((option) => option.value === targetCode)) {
       return false;
     }
 
+    if (force || select.value !== targetCode) {
+      select.value = targetCode;
+      select.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
+    }
+
+    // The widget can expose its select before its change handler is ready. If
+    // Google leaves the document in auto/source mode, retry the same selection
+    // a couple of times so the visitor never needs to click the language twice.
+    if (retries < 2) {
+      const retryTimer = window.setTimeout(() => {
+        pendingLanguageRetryTimers = pendingLanguageRetryTimers.filter((timer) => timer !== retryTimer);
+        if (requestId !== activeLanguageRequest) {
+          return;
+        }
+        if (document.documentElement.lang.toLowerCase() === targetCode) {
+          return;
+        }
+        retries += 1;
+        if (dispatchChange(true)) {
+          return;
+        }
+        waitForSelect();
+      }, 1800);
+      pendingLanguageRetryTimers.push(retryTimer);
+    }
+
+    return true;
+  };
+
+  const stopWaiting = () => {
     pendingTranslateObserver?.disconnect();
     pendingTranslateObserver = null;
     if (pendingTranslateTimeout !== null) {
       window.clearTimeout(pendingTranslateTimeout);
       pendingTranslateTimeout = null;
     }
-
-    if (forceChange || select.value !== targetCode) {
-      select.value = targetCode;
-      select.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
-    }
-    return true;
   };
 
-  if (applyWhenReady() || typeof MutationObserver === "undefined" || !document.body) {
-    return;
-  }
+  const waitForSelect = () => {
+    if (requestId !== activeLanguageRequest || typeof MutationObserver === "undefined" || !document.body) {
+      return;
+    }
 
-  pendingTranslateObserver = new MutationObserver(() => {
-    applyWhenReady();
-  });
-  pendingTranslateObserver.observe(document.body, { childList: true, subtree: true });
-  // Google Translate may be blocked; stop observing without forcing a reload.
-  pendingTranslateTimeout = window.setTimeout(() => {
     pendingTranslateObserver?.disconnect();
-    pendingTranslateObserver = null;
-    pendingTranslateTimeout = null;
-  }, 15000);
+    pendingTranslateObserver = new MutationObserver(() => {
+      if (dispatchChange(true)) {
+        stopWaiting();
+      }
+    });
+    pendingTranslateObserver.observe(document.body, { childList: true, subtree: true });
+    pendingTranslateTimeout = window.setTimeout(stopWaiting, 15000);
+  };
+
+  if (dispatchChange(forceChange)) {
+    stopWaiting();
+  } else {
+    waitForSelect();
+  }
 }
 
 function initializeGoogleTranslate() {
