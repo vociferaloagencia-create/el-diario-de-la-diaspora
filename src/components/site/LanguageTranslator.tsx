@@ -59,6 +59,10 @@ export function setPageLanguage(lang: SupportedLanguage) {
   if (typeof document !== "undefined") {
     const domain = window.location.hostname;
 
+    // Keep the document locale in sync with the selected translation. Static
+    // label overrides use this attribute to choose their reviewed wording.
+    document.documentElement.lang = targetCode;
+
     if (targetCode === "es") {
       document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain};`;
