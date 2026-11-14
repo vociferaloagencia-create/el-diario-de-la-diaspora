@@ -192,23 +192,23 @@ body > .skiptranslate {
 
 
 /* Universal Language Overrides for GTranslate */
-html:not([lang="fr"]) .lang-fr-only { display: none !important; }
-html:not([lang="en"]) .lang-en-only { display: none !important; }
-html[lang="fr"] .hide-on-fr { display: none !important; }
-html[lang="en"] .hide-on-en { display: none !important; }
+html:not([data-site-language="fr"]) .lang-fr-only { display: none !important; }
+html:not([data-site-language="en"]) .lang-en-only { display: none !important; }
+html[data-site-language="fr"] .hide-on-fr { display: none !important; }
+html[data-site-language="en"] .hide-on-en { display: none !important; }
 
 /* Legacy French Overrides */
-html[lang="fr"] .fr-lang-hide {
+html[data-site-language="fr"] .fr-lang-hide {
   display: none !important;
 }
-html:not([lang="fr"]) .fr-lang-show {
+html:not([data-site-language="fr"]) .fr-lang-show {
   display: none !important;
 }
 
-html[lang="fr"] .fr-acceder-hide {
+html[data-site-language="fr"] .fr-acceder-hide {
   display: none !important;
 }
-html:not([lang="fr"]) .fr-acceder-show {
+html:not([data-site-language="fr"]) .fr-acceder-show {
   display: none !important;
 }
 

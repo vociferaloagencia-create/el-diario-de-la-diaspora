@@ -128,7 +128,10 @@ function initializeGoogleTranslate() {
 
   const savedLanguage = readSavedLanguage();
   const savedCode = LANG_CODE_MAP[savedLanguage];
-  document.documentElement.lang = savedCode;
+  // Keep the document's source language as Spanish for Google Translate.
+  // The selected UI language is tracked separately so Google does not treat
+  // Spanish source text as if it were already in the requested language.
+  document.documentElement.dataset.siteLanguage = savedCode;
   if (savedCode !== "es") {
     writeGoogleTranslateCookie(savedCode);
   }
@@ -162,9 +165,9 @@ export function setPageLanguage(lang: SupportedLanguage) {
   const targetCode = LANG_CODE_MAP[lang] || "es";
 
   if (typeof document !== "undefined") {
-    // Keep the document locale in sync with the selected translation. Static
-    // label overrides use this attribute to choose their reviewed wording.
-    document.documentElement.lang = targetCode;
+    // Keep UI overrides in sync without changing the source language Google
+    // Translate uses to identify the Spanish page.
+    document.documentElement.dataset.siteLanguage = targetCode;
 
     if (targetCode === "es") {
       clearGoogleTranslateCookie();

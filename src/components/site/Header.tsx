@@ -76,9 +76,9 @@ export function Header({ settings, categories }: HeaderProps) {
       const savedLang = localStorage.getItem("selected_site_lang") as Language;
       if (savedLang && ['ES', 'FR', 'EN', 'AR'].includes(savedLang)) {
         setCurrentLang(savedLang);
-        document.documentElement.lang = savedLang.toLowerCase();
+        document.documentElement.dataset.siteLanguage = savedLang.toLowerCase();
       } else {
-        document.documentElement.lang = 'es';
+        document.documentElement.dataset.siteLanguage = 'es';
       }
     } catch (e) {
       // fallback
