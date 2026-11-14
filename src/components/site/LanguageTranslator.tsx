@@ -99,10 +99,10 @@ function applyGoogleTranslateLanguage(targetCode: string, forceChange = false) {
       select.dispatchEvent(new Event("change", { bubbles: true, cancelable: true }));
     }
 
-    // The widget can expose its select before its change handler is ready. If
-    // Google leaves the document in auto/source mode, retry the same selection
-    // a couple of times so the visitor never needs to click the language twice.
-    if (retries < 2) {
+    // Give Google Translate time to finish the first request. Re-dispatching too
+    // soon can restart an active translation, so only retry once, and only when
+    // the widget has dropped the requested selection instead of keeping it active.
+    if (retries < 1) {
       const retryTimer = window.setTimeout(() => {
         pendingLanguageRetryTimers = pendingLanguageRetryTimers.filter((timer) => timer !== retryTimer);
         if (requestId !== activeLanguageRequest) {
@@ -111,12 +111,16 @@ function applyGoogleTranslateLanguage(targetCode: string, forceChange = false) {
         if (document.documentElement.lang.toLowerCase() === targetCode) {
           return;
         }
+        const currentSelect = document.querySelector(".goog-te-combo") as HTMLSelectElement | null;
+        if (currentSelect?.value === targetCode) {
+          return;
+        }
         retries += 1;
         if (dispatchChange(true)) {
           return;
         }
         waitForSelect();
-      }, 1800);
+      }, 3200);
       pendingLanguageRetryTimers.push(retryTimer);
     }
 
